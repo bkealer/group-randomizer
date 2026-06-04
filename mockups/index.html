@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Group Generator — Mockup Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1d2230; --muted:#5b6478; --line:#e3e6ee; --bg:#f6f7fb; --card:#fff; --accent:#4338ca;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;padding:48px 24px 80px}
+  .wrap{max-width:1040px;margin:0 auto}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:10px}
+  h1{font-family:'Fraunces',serif;font-size:38px;font-weight:600;letter-spacing:-.01em;margin-bottom:8px}
+  .sub{color:var(--muted);max-width:62ch;margin-bottom:36px;font-size:15px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+  a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+  a.card:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(29,34,48,.10);border-color:#c9cdf0}
+  .num{font-family:'Fraunces',serif;font-size:13px;color:var(--accent);font-weight:600;margin-bottom:10px}
+  .swatch{display:flex;gap:6px;margin-bottom:14px}
+  .swatch span{width:26px;height:26px;border-radius:7px;border:1px solid rgba(0,0,0,.06)}
+  h2{font-size:18px;font-weight:600;margin-bottom:6px}
+  .desc{font-size:13.5px;color:var(--muted)}
+  .open{margin-top:14px;font-size:13px;font-weight:600;color:var(--accent)}
+  .note{margin-top:40px;padding:18px 20px;background:#fff;border:1px solid var(--line);border-radius:14px;font-size:13.5px;color:var(--muted)}
+  .note b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Random Group Generator</div>
+  <h1>Five design directions</h1>
+  <p class="sub">All professional / academic, all with the shuffle-then-settle reveal, both sizing modes (number of groups / students per group), save &amp; load, print, the visible “avoid repeat groupings” toggle, and the hidden teacher-only keep-apart rules. Click any one to try it live.</p>
+
+  <div class="grid">
+    <a class="card" href="mockup-1-split-studio.html">
+      <div class="num">01</div>
+      <div class="swatch"><span style="background:#2b3040"></span><span style="background:#4338ca"></span><span style="background:#eef0f8"></span></div>
+      <h2>Split Studio</h2>
+      <div class="desc">Two-pane desktop tool. Dark slate control panel on the left, a large light “stage” for results on the right. Serif headings, single indigo accent. Structured and refined.</div>
+      <div class="open">Open mockup →</div>
+    </a>
+
+    <a class="card" href="mockup-2-command-deck.html">
+      <div class="num">02</div>
+      <div class="swatch"><span style="background:#1f2a44"></span><span style="background:#3b6ea5"></span><span style="background:#eceff3"></span></div>
+      <h2>Command Deck</h2>
+      <div class="desc">Dashboard app-shell. Persistent top toolbar of controls, a saved-sessions rail on the left, results grid in the canvas. Crisp “software product” feel a teacher keeps open all class.</div>
+      <div class="open">Open mockup →</div>
+    </a>
+
+    <a class="card" href="mockup-3-projector-stage.html">
+      <div class="num">03</div>
+      <div class="swatch"><span style="background:#0c1322"></span><span style="background:#4f8cff"></span><span style="background:#11203a"></span></div>
+      <h2>Projector Stage</h2>
+      <div class="desc">Presentation-first dark mode for projecting to the class. Controls hide into a drawer during a cinematic reveal; huge glowing group cards readable from the back of the room.</div>
+      <div class="open">Open mockup →</div>
+    </a>
+
+    <a class="card" href="mockup-4-soft-cards.html">
+      <div class="num">04</div>
+      <div class="swatch"><span style="background:#f3ede2"></span><span style="background:#7c9473"></span><span style="background:#c08457"></span></div>
+      <h2>Soft Cards</h2>
+      <div class="desc">Calm, warm, Notion-like single column. Rounded cards, paper background, sage/terracotta accents, gentle motion. The most inviting and uncluttered of the five.</div>
+      <div class="open">Open mockup →</div>
+    </a>
+
+    <a class="card" href="mockup-5-utility-compact.html">
+      <div class="num">05</div>
+      <div class="swatch"><span style="background:#15171c"></span><span style="background:#2f6df6"></span><span style="background:#f4f4f1"></span></div>
+      <h2>Utility Compact</h2>
+      <div class="desc">Dense power-user tool. Everything on one no-scroll screen, hairline borders, monospace numbers, keyboard shortcuts. Built for speed and control.</div>
+      <div class="open">Open mockup →</div>
+    </a>
+  </div>
+
+  <div class="note">
+    <b>Note:</b> these are visual mockups using your browser’s local storage so saving/loading feels real. The real version will use a Cloudflare D1 cloud database so saved groups sync across devices. Once you pick a direction (or a mix), we’ll build the full app and deploy it to Cloudflare Pages.
+  </div>
+</div>
+</body>
+</html>

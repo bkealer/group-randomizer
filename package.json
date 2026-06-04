@@ -1,0 +1,16 @@
+{
+  "name": "group-randomizer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Random Group Generator — Cloudflare Pages + D1 + Google sign-in",
+  "scripts": {
+    "dev": "wrangler pages dev",
+    "deploy": "wrangler pages deploy",
+    "db:create": "wrangler d1 create group-randomizer-db",
+    "db:init": "wrangler d1 execute group-randomizer-db --remote --file=./schema.sql",
+    "db:init:local": "wrangler d1 execute group-randomizer-db --local --file=./schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4.98.0"
+  }
+}

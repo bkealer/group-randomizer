@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Group Randomizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f6f1e9;
+    --paper-2: #fbf8f2;
+    --card: #fffdf9;
+    --ink: #38322b;
+    --ink-soft: #6b6258;
+    --ink-faint: #9a9085;
+    --line: #ebe3d6;
+    --line-2: #e0d6c5;
+    --sage: #7a9474;
+    --sage-deep: #5f7a5a;
+    --sage-soft: #e7eee2;
+    --terra: #c08457;
+    --terra-soft: #f3e6d8;
+    --shadow-sm: 0 1px 2px rgba(56, 50, 43, 0.04), 0 2px 6px rgba(56, 50, 43, 0.05);
+    --shadow-md: 0 4px 14px rgba(56, 50, 43, 0.07), 0 1px 3px rgba(56, 50, 43, 0.05);
+    --shadow-lg: 0 14px 40px rgba(56, 50, 43, 0.12);
+    --r-lg: 22px;
+    --r-md: 16px;
+    --r-sm: 11px;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #efe7da 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 10%, #f0ebe0 0%, transparent 55%),
+      var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  /* ---------- App shell (two-pane, full height) ---------- */
+  .shell {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ---------- Left: controls ---------- */
+  .sidebar {
+    width: 392px;
+    flex-shrink: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 22px 22px 28px;
+    border-right: 1px solid var(--line-2);
+    background: linear-gradient(180deg, rgba(255,253,249,.7), rgba(251,248,242,.55));
+    backdrop-filter: blur(2px);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .sidebar::-webkit-scrollbar { width: 9px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
+
+  header.app {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 42px; height: 42px; border-radius: 13px;
+    background: linear-gradient(150deg, var(--sage) 0%, var(--sage-deep) 100%);
+    display: grid; place-items: center; box-shadow: var(--shadow-md); flex-shrink: 0;
+  }
+  .brand-mark svg { width: 22px; height: 22px; }
+  .brand h1 {
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 22px;
+    margin: 0; letter-spacing: -0.01em; line-height: 1.05;
+  }
+  .brand p { margin: 1px 0 0; font-size: 12px; color: var(--ink-soft); }
+
+  .gear-btn {
+    border: 1px solid var(--line-2); background: var(--card);
+    width: 36px; height: 36px; border-radius: 11px;
+    display: grid; place-items: center; cursor: pointer; color: var(--ink-faint);
+    transition: all .2s var(--ease); box-shadow: var(--shadow-sm); flex-shrink: 0;
+  }
+  .gear-btn:hover { color: var(--ink-soft); transform: rotate(35deg); border-color: var(--line); }
+  .gear-btn svg { width: 17px; height: 17px; }
+
+  .block { display: flex; flex-direction: column; }
+  .block + .block { margin-top: 2px; }
+  .block-head {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 9px;
+  }
+  .block-head .step {
+    font-size: 10px; font-weight: 600; color: var(--sage-deep);
+    background: var(--sage-soft); padding: 2px 8px; border-radius: 20px; letter-spacing: .03em;
+  }
+  .block-head h2 {
+    font-family: 'Fraunces', serif; font-size: 15.5px; font-weight: 600; margin: 0; letter-spacing: -0.005em;
+  }
+
+  label.fld { display: block; font-size: 12.5px; font-weight: 500; color: var(--ink-soft); margin-bottom: 6px; }
+
+  textarea, input[type=text], input[type=number] {
+    font-family: inherit; color: var(--ink); background: var(--paper-2);
+    border: 1px solid var(--line-2); border-radius: var(--r-sm);
+    padding: 11px 13px; font-size: 14px; width: 100%;
+    transition: border-color .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease);
+  }
+  textarea:focus, input:focus {
+    outline: none; border-color: var(--sage); background: var(--card);
+    box-shadow: 0 0 0 3px rgba(122, 148, 116, 0.16);
+  }
+  textarea { min-height: 150px; resize: vertical; line-height: 1.6; }
+  ::placeholder { color: var(--ink-faint); }
+
+  .ta-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 8px; font-size: 12.5px;
+  }
+  .count { color: var(--ink-soft); font-weight: 500; }
+  .count b { color: var(--sage-deep); font-weight: 600; }
+  .linkish {
+    color: var(--sage-deep); font-weight: 500; cursor: pointer; text-decoration: none;
+    border-bottom: 1px dashed rgba(95,122,90,.45); padding-bottom: 1px;
+    transition: color .15s, border-color .15s;
+  }
+  .linkish:hover { color: var(--sage); border-color: var(--sage); }
+
+  /* segmented */
+  .seg {
+    display: flex; background: var(--paper-2); border: 1px solid var(--line-2);
+    border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 12px;
+  }
+  .seg button {
+    flex: 1; border: none; background: transparent; cursor: pointer;
+    font-family: inherit; font-size: 12.5px; font-weight: 500; color: var(--ink-soft);
+    padding: 8px 10px; border-radius: 9px; transition: all .2s var(--ease);
+  }
+  .seg button.on { background: var(--card); color: var(--ink); box-shadow: var(--shadow-sm); font-weight: 600; }
+
+  .size-row { display: flex; align-items: flex-end; gap: 12px; }
+  .num-wrap { width: 116px; flex-shrink: 0; }
+  .num-stepper { display: flex; align-items: stretch; }
+  .num-stepper input { text-align: center; border-radius: 0; border-left: none; border-right: none; -moz-appearance: textfield; }
+  .num-stepper input::-webkit-outer-spin-button,
+  .num-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .stepbtn {
+    width: 34px; border: 1px solid var(--line-2); background: var(--paper-2);
+    cursor: pointer; color: var(--ink-soft); font-size: 17px; line-height: 1; transition: background .15s;
+  }
+  .stepbtn:hover { background: var(--sage-soft); color: var(--sage-deep); }
+  .stepbtn.minus { border-radius: var(--r-sm) 0 0 var(--r-sm); }
+  .stepbtn.plus { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+
+  .hint {
+    flex: 1; font-size: 12.5px; color: var(--ink-soft); background: var(--sage-soft);
+    border-radius: var(--r-sm); padding: 9px 12px; line-height: 1.4;
+  }
+  .hint .arrow { color: var(--sage-deep); font-weight: 600; }
+
+  .switch {
+    display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
+    font-size: 12.5px; color: var(--ink-soft); user-select: none;
+  }
+  .switch input { display: none; }
+  .track {
+    width: 38px; height: 22px; border-radius: 20px; background: var(--line-2);
+    position: relative; transition: background .22s var(--ease); flex-shrink: 0;
+  }
+  .track::after {
+    content: ''; position: absolute; top: 2.5px; left: 2.5px; width: 17px; height: 17px;
+    border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.18);
+    transition: transform .22s var(--ease);
+  }
+  .switch input:checked + .track { background: var(--sage); }
+  .switch input:checked + .track::after { transform: translateX(16px); }
+  .switch .lbl b { color: var(--ink); font-weight: 600; }
+  .switch .sub { font-size: 11px; color: var(--ink-faint); }
+
+  .btn {
+    font-family: inherit; font-weight: 600; font-size: 14px; border: none; cursor: pointer;
+    border-radius: 13px; padding: 13px 20px; transition: all .2s var(--ease);
+    display: inline-flex; align-items: center; gap: 9px; justify-content: center;
+  }
+  .btn-primary {
+    background: linear-gradient(150deg, var(--sage) 0%, var(--sage-deep) 100%);
+    color: #fff; box-shadow: 0 6px 18px rgba(95, 122, 90, 0.32); width: 100%; font-size: 15px; padding: 14px 22px;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(95, 122, 90, 0.38); }
+  #newBtn:hover { box-shadow: 0 11px 28px rgba(124, 84, 176, 0.42) !important; }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: .55; cursor: default; transform: none; box-shadow: 0 6px 18px rgba(95, 122, 90, 0.2); }
+  .btn-primary svg { width: 19px; height: 19px; }
+
+  .btn-ghost {
+    background: var(--card); color: var(--ink-soft); border: 1px solid var(--line-2);
+    box-shadow: var(--shadow-sm); font-size: 13px; padding: 10px 14px;
+  }
+  .btn-ghost:hover { border-color: var(--line); color: var(--ink); background: var(--paper-2); }
+  .btn-ghost svg { width: 16px; height: 16px; }
+
+  .divider { height: 1px; background: var(--line); margin: 2px 0; }
+
+  /* save/load */
+  select {
+    font-family: inherit; font-size: 13.5px; color: var(--ink); background: var(--paper-2);
+    border: 1px solid var(--line-2); border-radius: var(--r-sm); padding: 10px 12px; width: 100%;
+    cursor: pointer; transition: border-color .15s; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239a9085' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+  }
+  select:focus { outline: none; border-color: var(--sage); }
+  .sl-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .sl-actions .btn { flex: 1 1 80px; padding: 10px 8px; }
+  .btn-danger {
+    background: var(--card); color: #b5503f; border: 1px solid #e8cfc6;
+    box-shadow: var(--shadow-sm); font-size: 13px; padding: 10px 14px;
+  }
+  .btn-danger:hover { background: #fbeae6; border-color: #dcae9f; color: #9e3f2f; }
+  .btn-danger svg { width: 16px; height: 16px; }
+  .btn-danger.solid { background: #b5503f; color: #fff; border: none; }
+  .btn-danger.solid:hover { background: #9e3f2f; color: #fff; }
+
+  /* ---------- Right: canvas ---------- */
+  .canvas {
+    flex: 1; height: 100vh; overflow-y: auto; padding: 26px 30px 40px;
+    display: flex; flex-direction: column;
+  }
+  .canvas::-webkit-scrollbar { width: 11px; }
+  .canvas::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
+
+  .canvas-head {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+    margin-bottom: 18px;
+  }
+  .canvas-head h2 {
+    font-family: 'Fraunces', serif; font-size: 24px; margin: 0; font-weight: 600; letter-spacing: -0.01em;
+  }
+  .canvas-head .meta { font-size: 13px; color: var(--ink-faint); margin-top: 4px; }
+  .results-actions { display: flex; gap: 9px; flex-wrap: wrap; justify-content: flex-start; }
+
+  /* stage */
+  .stage {
+    position: relative; flex-shrink: 0; height: clamp(400px, 56vh, 600px); border-radius: var(--r-md);
+    background: radial-gradient(720px 380px at 50% 45%, #fff 0%, var(--paper-2) 74%);
+    border: 1px dashed var(--line-2); display: grid; place-items: center; overflow: hidden;
+    margin-bottom: 22px;
+  }
+  .stage.hidden { display: none; }
+  .stage .hello { text-align: center; color: var(--ink-faint); padding: 0 24px; }
+  .stage .hello .ic {
+    width: 54px; height: 54px; margin: 0 auto 14px; border-radius: 16px;
+    background: var(--sage-soft); display: grid; place-items: center; color: var(--sage-deep);
+  }
+  .stage .hello .ic svg { width: 26px; height: 26px; }
+  .stage .hello .big {
+    font-family: 'Fraunces', serif; font-size: 20px; color: var(--ink-soft); margin-bottom: 5px;
+  }
+  .chip {
+    position: absolute; font-size: 13px; font-weight: 550; background: var(--card); color: var(--ink);
+    border: 1px solid var(--line-2); border-radius: 20px; padding: 6px 13px;
+    box-shadow: var(--shadow-md); white-space: nowrap; will-change: transform, opacity; pointer-events: none;
+  }
+  .stage-caption {
+    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%) translateY(8px);
+    font-family: 'Fraunces', serif; font-style: italic; font-size: 15.5px; color: var(--ink-soft);
+    background: rgba(255,253,249,.85); border: 1px solid var(--line-2); padding: 7px 18px;
+    border-radius: 22px; box-shadow: var(--shadow-sm); white-space: nowrap; max-width: 92%;
+    overflow: hidden; text-overflow: ellipsis; opacity: 0;
+    transition: opacity .3s var(--ease), transform .3s var(--ease); pointer-events: none; z-index: 3;
+  }
+  .stage-caption.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .chip.tinted-0 { background: var(--sage-soft); border-color: #d5e1cd; }
+  .chip.tinted-1 { background: var(--terra-soft); border-color: #ecd9c5; }
+  .chip.tinted-2 { background: #e9eef3; border-color: #d6dfe7; }
+  .chip.tinted-3 { background: #f3eaf1; border-color: #e6d3e2; }
+  .chip.tinted-4 { background: #f0efdc; border-color: #e1dfc2; }
+  .chip.tinted-5 { background: #e3eef0; border-color: #cfe0e3; }
+
+  /* results */
+  #results { flex: 1; }
+  .empty-canvas {
+    flex: 1; display: grid; place-items: center; text-align: center; color: var(--ink-faint);
+  }
+  .empty-canvas .big { font-family: 'Fraunces', serif; font-size: 19px; color: var(--ink-soft); margin-bottom: 4px; }
+
+  .groups {
+    display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+  .group {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--r-md);
+    padding: 16px 16px 14px; box-shadow: var(--shadow-sm); opacity: 0;
+    transform: translateY(10px) scale(.88);
+  }
+  .group.in { animation: popIn .46s cubic-bezier(.34,1.56,.5,1) forwards; }
+  @keyframes popIn { to { opacity: 1; transform: none; } }
+  .group .g-head {
+    display: flex; align-items: center; gap: 9px; margin-bottom: 11px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--line);
+  }
+  .g-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .group .g-title { font-weight: 600; font-size: 14.5px; }
+  .group .g-num { font-size: 11.5px; color: var(--ink-faint); margin-left: auto; font-weight: 500; }
+  .member {
+    font-size: 14px; padding: 5px 0; color: var(--ink); display: flex; align-items: center; gap: 9px;
+    border-radius: 8px; cursor: grab;
+  }
+  .member:active { cursor: grabbing; }
+  .member.dragging { opacity: .4; }
+  .member.m-hidden { opacity: 0; transform: translateY(-5px) scale(.9); } /* reserves space, stays invisible */
+  .member.m-in { animation: memberPop .3s cubic-bezier(.34,1.56,.5,1) forwards; }
+  @keyframes memberPop { from { opacity: 0; transform: translateY(-5px) scale(.9); } to { opacity: 1; transform: none; } }
+  .group.drop-target { border-color: var(--sage); box-shadow: 0 0 0 3px rgba(122,148,116,.16); }
+  .member .av {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center;
+    font-size: 11px; font-weight: 600; color: #fff;
+  }
+  .member .grip { margin-left: auto; color: var(--line-2); display: flex; opacity: 0; transition: opacity .15s; }
+  .member:hover .grip { opacity: 1; }
+  .member .grip svg { width: 15px; height: 15px; }
+
+  .acc-0 { --g: #7a9474; } .acc-1 { --g: #c08457; }
+  .acc-2 { --g: #6f8fb0; } .acc-3 { --g: #a878a0; }
+  .acc-4 { --g: #b0a35a; } .acc-5 { --g: #6fa3a0; }
+  .acc-0 .g-dot, .acc-1 .g-dot, .acc-2 .g-dot, .acc-3 .g-dot, .acc-4 .g-dot, .acc-5 .g-dot { background: var(--g); }
+  .acc-0 .av, .acc-1 .av, .acc-2 .av, .acc-3 .av, .acc-4 .av, .acc-5 .av { background: var(--g); }
+
+  .drag-tip { font-size: 12px; color: var(--ink-faint); margin: 14px 2px 0; display: flex; align-items: center; gap: 7px; }
+  .drag-tip svg { width: 14px; height: 14px; }
+
+  /* ---------- Modal ---------- */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(56,50,43,.34); backdrop-filter: blur(3px);
+    display: none; align-items: center; justify-content: center; padding: 20px; z-index: 50;
+  }
+  .overlay.show { display: flex; animation: fade .2s ease; }
+  @keyframes fade { from { opacity: 0; } }
+  .modal {
+    background: var(--card); border-radius: var(--r-lg); width: 100%; max-width: 460px;
+    box-shadow: var(--shadow-lg); border: 1px solid var(--line); overflow: hidden;
+    transform: translateY(8px); animation: rise .28s var(--ease) forwards;
+  }
+  @keyframes rise { to { transform: none; } }
+  .modal-head {
+    padding: 20px 22px 14px; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; gap: 12px;
+  }
+  .modal-head .lockico {
+    width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; background: #efe9df;
+    color: var(--ink-soft); display: grid; place-items: center;
+  }
+  .modal-head .lockico svg { width: 17px; height: 17px; }
+  .modal-head h3 { font-family: 'Fraunces', serif; font-size: 17px; margin: 0; font-weight: 600; }
+  .modal-head p { margin: 3px 0 0; font-size: 12.5px; color: var(--ink-faint); }
+  .modal-head .x {
+    margin-left: auto; cursor: pointer; color: var(--ink-faint); background: none; border: none;
+    font-size: 22px; line-height: 1; padding: 0 2px;
+  }
+  .modal-head .x:hover { color: var(--ink); }
+  .modal-body { padding: 18px 22px 22px; }
+  .autosave-tag {
+    font-size: 11.5px; font-weight: 600; color: var(--sage-deep);
+    background: var(--sage-soft); border: 1px solid #d5e1cd;
+    padding: 3px 10px; border-radius: 20px; opacity: 0;
+    transition: opacity .25s var(--ease); white-space: nowrap;
+  }
+  .autosave-tag.show { opacity: 1; }
+  .teacher-tag {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: .04em;
+    color: #9b7b3e; background: #f6ecd6; border: 1px solid #ecdcb8; padding: 3px 9px; border-radius: 20px; margin-bottom: 14px;
+  }
+  .pair-add { display: flex; gap: 8px; margin-bottom: 14px; }
+  .pair-add select { flex: 1; }
+  .pair-add .btn { padding: 0 16px; }
+  .pairs { display: flex; flex-direction: column; gap: 8px; }
+  .pair {
+    display: flex; align-items: center; gap: 8px; background: var(--paper-2);
+    border: 1px solid var(--line-2); border-radius: var(--r-sm); padding: 9px 12px; font-size: 13.5px;
+  }
+  .pair .vs { color: var(--ink-faint); font-size: 12px; }
+  .pair .rm { margin-left: auto; cursor: pointer; color: var(--ink-faint); background: none; border: none; font-size: 17px; line-height: 1; }
+  .pair .rm:hover { color: #b5503f; }
+  .pairs-empty { font-size: 13px; color: var(--ink-faint); text-align: center; padding: 14px; }
+
+  /* ---------- Toast / confetti ---------- */
+  .toast {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: #fdf9f1; padding: 12px 20px; border-radius: 12px; font-size: 13.5px;
+    font-weight: 500; box-shadow: var(--shadow-lg); opacity: 0; pointer-events: none;
+    transition: all .3s var(--ease); z-index: 80; display: flex; align-items: center; gap: 9px;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast svg { width: 16px; height: 16px; color: var(--sage); }
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 70; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 860px) {
+    .shell { flex-direction: column; height: auto; overflow: visible; }
+    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--line-2); }
+    .canvas { height: auto; }
+  }
+
+  /* ---------- Print ---------- */
+  @media print {
+    body { background: #fff; }
+    .shell { display: block; height: auto; overflow: visible; }
+    .sidebar, .stage, .results-actions, .gear-btn, .drag-tip { display: none !important; }
+    .canvas { height: auto; overflow: visible; padding: 0; }
+    .canvas-head h2 { font-size: 24px; }
+    .groups { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .group { box-shadow: none; border: 1px solid #ccc; opacity: 1 !important; transform: none !important; break-inside: avoid; }
+    .member .av { border: 1px solid #999; } .member .grip { display: none; }
+    .member.m-hidden { opacity: 1 !important; transform: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ============ LEFT: CONTROLS ============ -->
+  <aside class="sidebar">
+    <header class="app">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><circle cx="9" cy="17" r="2.4"/>
+            <path d="M8 11v3M11.5 8.5l3 .4M10.5 14.6l2 1.2"/>
+          </svg>
+        </div>
+        <div>
+          <h1>Group Randomizer</h1>
+        </div>
+      </div>
+      <button class="gear-btn" id="gearBtn" title="Teacher settings" aria-label="Teacher settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- SAVE / LOAD — start here: pick a saved group or make a new one -->
+    <div class="block">
+      <div class="block-head"><span class="step" style="background:#dbe6f0; color:#3b6ea5;">START</span><h2>Your saved groups</h2></div>
+      <button class="btn btn-primary" id="newBtn" style="margin-bottom:10px; background:linear-gradient(145deg,#a982d6 0%,#7c54b0 55%,#6a46a0 100%); box-shadow:0 6px 18px rgba(124,84,176,.32);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        New group
+      </button>
+      <select id="savedList"><option value="">— Saved groups —</option></select>
+      <div class="sl-actions">
+        <button class="btn btn-ghost" id="saveBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+          Save
+        </button>
+        <button class="btn btn-danger" id="deleteBtn" title="Delete the selected saved group">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>
+          Delete
+        </button>
+        <button class="btn btn-ghost" id="printBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          Print
+        </button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- TITLE -->
+    <div class="block">
+      <div class="block-head"><span class="step">1</span><h2>Name this grouping</h2></div>
+      <input type="text" id="title" placeholder="Rename me" />
+    </div>
+
+    <!-- NAMES -->
+    <div class="block">
+      <div class="block-head"><span class="step">2</span><h2>Who's in the room?</h2></div>
+      <textarea id="names" placeholder="Avery Thompson&#10;Jordan Lee&#10;Maya Patel&#10;…"></textarea>
+      <div class="ta-foot">
+        <span class="count"><b id="countNum">0</b> <span id="countWord">students</span></span>
+        <a class="linkish" id="loadSample">Load sample roster</a>
+      </div>
+    </div>
+
+    <!-- SIZING + RANDOMIZE -->
+    <div class="block">
+      <div class="block-head"><span class="step">3</span><h2>How should they split?</h2></div>
+      <div class="seg" id="modeSeg">
+        <button data-mode="groups" class="on">Number of groups</button>
+        <button data-mode="size">Students per group</button>
+      </div>
+      <div class="size-row">
+        <div class="num-wrap">
+          <label class="fld" id="numLabel">Groups</label>
+          <div class="num-stepper">
+            <button class="stepbtn minus" id="dec" aria-label="decrease">−</button>
+            <input type="number" id="sizeVal" value="5" min="1" max="40" />
+            <button class="stepbtn plus" id="inc" aria-label="increase">+</button>
+          </div>
+        </div>
+        <div class="hint" id="splitHint"><span class="arrow">→</span> Add students to see the split.</div>
+      </div>
+      <label class="switch" title="Tries to avoid pairing students who were grouped together in a saved round." style="margin:16px 0 14px;">
+        <input type="checkbox" id="avoidRepeat" />
+        <span class="track"></span>
+        <span class="lbl"><b>Avoid repeat groupings</b><br><span class="sub">Mixes students from previous saved rounds</span></span>
+      </label>
+      <button class="btn btn-primary" id="rollBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/>
+        </svg>
+        Randomize groups
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============ RIGHT: CANVAS ============ -->
+  <main class="canvas">
+    <div class="canvas-head">
+      <div>
+        <h2 id="canvasTitle">Your groups</h2>
+        <div class="meta" id="canvasMeta">Set up the roster on the left, then hit Randomize.</div>
+      </div>
+      <div class="results-actions" id="resultsActions" style="display:none;">
+        <button class="btn btn-ghost" id="rerollBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15"/></svg>
+          Randomize again
+        </button>
+        <button class="btn btn-ghost" id="clearBtn" title="Clear the groups but keep the roster">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+          Clear groups
+        </button>
+        <button class="btn btn-ghost" id="printBtn2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          Print
+        </button>
+      </div>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="hello" id="stageHello">
+        <div class="ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/></svg>
+        </div>
+        <div class="big">Ready when you are.</div>
+        <div>Hit <b>Randomize</b> and watch the names settle into groups.</div>
+      </div>
+      <div class="stage-caption" id="stageCaption"></div>
+    </div>
+
+    <section id="results">
+      <div class="empty-canvas" id="emptyCanvas">
+        <div>
+          <div class="big">No groups yet</div>
+          <div>Your randomized groups will appear here.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="drag-tip" id="dragTip" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>
+      Tip: drag any student to move them between groups.
+    </div>
+  </main>
+</div>
+
+<!-- TEACHER MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="lockico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div>
+        <h3>Teacher settings</h3>
+        <p>Only you see this — students never do.</p>
+      </div>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+        <span id="autosaveTag" class="autosave-tag">Saved&nbsp;✓</span>
+        <button class="x" id="modalX" aria-label="Close" style="margin-left:0;">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <span class="teacher-tag">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+        HIDDEN FROM STUDENTS
+      </span>
+      <div id="paContext" style="font-size:12.5px; color:var(--sage-deep); background:var(--sage-soft); border:1px solid #d5e1cd; border-radius:10px; padding:8px 12px; margin-bottom:12px;"></div>
+      <p style="margin:0 0 14px; font-size:13px; color:var(--ink-soft);">Keep certain students apart <b>in this list</b>. These pairs will never be placed in the same group. Only this list’s students appear below — saving the list saves its rules with it.</p>
+      <div class="pair-add">
+        <select id="paStudentA"><option value="">Student…</option></select>
+        <select id="paStudentB"><option value="">Student…</option></select>
+        <button class="btn btn-primary" id="addPair" style="width:auto;">Add</button>
+      </div>
+      <div class="pairs" id="pairsList"></div>
+
+      <div class="divider" style="margin:20px 0 16px;"></div>
+      <p style="margin:0 0 3px; font-family:'Fraunces',serif; font-weight:600; font-size:15px;">Shuffle phrases</p>
+      <p style="margin:0 0 12px; font-size:12.5px; color:var(--ink-faint);">Funny lines that flash on screen while the groups shuffle. These <b>are</b> shown to the class. Leave empty for a silent shuffle.</p>
+      <div class="pair-add">
+        <input type="text" id="phraseInput" placeholder="e.g. Consulting the chaos goblins…" style="flex:1;" />
+        <button class="btn btn-primary" id="addPhrase" style="width:auto;">Add</button>
+      </div>
+      <div class="pairs" id="phrasesList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal" style="max-width:392px;">
+    <div class="modal-head">
+      <div class="lockico" style="background:#fbeae6;color:#b5503f;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>
+      </div>
+      <div>
+        <h3 id="confirmTitle">Delete session?</h3>
+        <p id="confirmMsg">This can’t be undone.</p>
+      </div>
+    </div>
+    <div class="modal-body" style="display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn btn-ghost" id="confirmCancel">Cancel</button>
+      <button class="btn btn-danger solid" id="confirmOk">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+  <span id="toastMsg">Saved</span>
+</div>
+<canvas id="confetti"></canvas>
+
+<script>
+(function(){
+  "use strict";
+  const $ = s => document.querySelector(s);
+  const LS_SESSIONS = 'gm_softstudio_sessions_v3';
+  const LS_STATE = 'gm_softstudio_state_v3';
+  const LS_PHRASES = 'gm_softstudio_phrases_v1'; // phrases stay global (generic fun lines)
+  function genId(){ return 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+  const DEFAULT_PHRASES = [
+    "Consulting the chaos goblins…",
+    "Shuffling like a caffeinated card dealer…",
+    "Asking the random number gods…",
+    "Mixing it up like a snow globe…",
+    "Negotiating with the seating chart…",
+    "Spinning the wheel of destiny…",
+    "Untangling the friendship webs…",
+    "Rolling the dice of fate…",
+    "Stirring the group soup…",
+    "Doing math you can’t see…"
+  ];
+
+  const SAMPLE = ["Avery Thompson","Jordan Lee","Maya Patel","Liam O'Connor","Sofia Ramirez","Noah Kim","Olivia Bennett","Ethan Nguyen","Isabella Rossi","Mason Clarke","Amara Okafor","Lucas Müller","Chloe Andersson","Diego Santos","Hannah Goldberg","Ravi Sharma","Emma Walsh","Caleb Foster","Zara Hussain","Owen Murphy","Grace Lin","Tobias Vega","Naomi Cohen","Felix Dubois","Priya Desai","Marcus Bell","Yuki Tanaka","Elena Novak","Jamal Carter","Theo Almeida"];
+
+  let mode = 'groups';
+  let lastResult = null;
+  let keepApart = [];
+  let currentSessionId = null;  // which saved list is currently loaded (auto-synced)
+
+  const names = $('#names'), countNum = $('#countNum'), countWord = $('#countWord');
+  const sizeVal = $('#sizeVal'), numLabel = $('#numLabel'), splitHint = $('#splitHint');
+  const titleEl = $('#title'), stage = $('#stage'), stageHello = $('#stageHello');
+  const results = $('#results'), savedList = $('#savedList');
+  const toast = $('#toast'), toastMsg = $('#toastMsg');
+  const canvasTitle = $('#canvasTitle'), canvasMeta = $('#canvasMeta');
+  const resultsActions = $('#resultsActions'), emptyCanvas = $('#emptyCanvas'), dragTip = $('#dragTip');
+
+  function getNames(){ return names.value.split('\n').map(s=>s.trim()).filter(Boolean); }
+  function showToast(msg){
+    toastMsg.textContent = msg; toast.classList.add('show');
+    clearTimeout(showToast._t); showToast._t = setTimeout(()=>toast.classList.remove('show'), 2200);
+  }
+  function initials(name){
+    const p = name.split(/\s+/);
+    return ((p[0]?.[0]||'') + (p[1]?.[0]||'')).toUpperCase() || name[0]?.toUpperCase() || '?';
+  }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function computeSplit(n){
+    if(n <= 0) return {groups: 0, sizes: []};
+    let g;
+    if(mode === 'groups') g = Math.max(1, Math.min(n, parseInt(sizeVal.value)||1));
+    else { const per = Math.max(1, parseInt(sizeVal.value)||1); g = Math.max(1, Math.ceil(n/per)); }
+    const base = Math.floor(n/g), rem = n % g;
+    const sizes = [];
+    for(let i=0;i<g;i++) sizes.push(base + (i < rem ? 1 : 0));
+    return {groups: g, sizes};
+  }
+
+  function updateCount(){
+    const n = getNames().length;
+    countNum.textContent = n;
+    countWord.textContent = n === 1 ? 'student' : 'students';
+    updateHint(); populatePairSelects();
+  }
+  function updateHint(){
+    const n = getNames().length;
+    if(n === 0){ splitHint.innerHTML = '<span class="arrow">→</span> Add students to see the split.'; return; }
+    const {groups, sizes} = computeSplit(n);
+    const counts = {};
+    sizes.forEach(s => counts[s] = (counts[s]||0)+1);
+    const parts = Object.keys(counts).sort((a,b)=>b-a).map(sz=>{
+      const c = counts[sz]; return `${c} group${c>1?'s':''} of ${sz}`;
+    });
+    splitHint.innerHTML = `<span class="arrow">→</span> ${parts.join(', ')} <span style="color:var(--ink-faint)">(${groups} total)</span>`;
+  }
+
+  $('#modeSeg').addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    mode = b.dataset.mode;
+    document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on', x===b));
+    numLabel.textContent = mode === 'groups' ? 'Groups' : 'Per group';
+    if(mode === 'groups' && (parseInt(sizeVal.value)||0) > 40) sizeVal.value = 5;
+    updateHint(); saveState();
+  });
+  $('#inc').addEventListener('click', ()=>{ sizeVal.value = Math.min(40, (parseInt(sizeVal.value)||0)+1); updateHint(); saveState(); });
+  $('#dec').addEventListener('click', ()=>{ sizeVal.value = Math.max(1, (parseInt(sizeVal.value)||1)-1); updateHint(); saveState(); });
+  sizeVal.addEventListener('input', ()=>{ updateHint(); saveState(); });
+  names.addEventListener('input', ()=>{ updateCount(); saveState(); });
+  titleEl.addEventListener('input', saveState);
+  $('#avoidRepeat').addEventListener('change', saveState);
+
+  $('#loadSample').addEventListener('click', ()=>{
+    names.value = SAMPLE.join('\n');
+    updateCount(); saveState(); showToast('Loaded ' + SAMPLE.length + ' sample students');
+  });
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  }
+  function conflict(name, group){
+    return group.some(m => keepApart.some(p =>
+      (p[0]===name && p[1]===m) || (p[1]===name && p[0]===m)));
+  }
+  function makeGroups(){
+    const roster = getNames();
+    if(roster.length === 0) return null;
+    const {sizes} = computeSplit(roster.length);
+    let best = null, bestBad = Infinity;
+    for(let attempt=0; attempt<60; attempt++){
+      const pool = shuffle(roster);
+      const groups = sizes.map(()=>[]);
+      let bad = 0;
+      pool.forEach(name=>{
+        let order = groups.map((g,i)=>({i, g})).filter(o=>o.g.length < sizes[o.i]);
+        order.sort((a,b)=>{
+          const ca = conflict(name,a.g)?1:0, cb = conflict(name,b.g)?1:0;
+          if(ca!==cb) return ca-cb;
+          return a.g.length - b.g.length;
+        });
+        const pick = order[0];
+        if(conflict(name, pick.g)) bad++;
+        pick.g.push(name);
+      });
+      if(bad < bestBad){ bestBad = bad; best = groups; if(bad===0) break; }
+    }
+    return best;
+  }
+
+  // ---------- SHUFFLE → SETTLE animation ----------
+  const tints = 6;
+  let animating = false;
+  const SPEED = 1.44;         // ~44% slower than original (two 20% slow-downs)
+  let lastRoutine = -1;       // avoid repeating the same animation twice in a row
+
+  // Motion generators — each returns a target offset for chip i of n at phase ph.
+  function jumbleStyles(W, H){
+    const R = Math.min(W, H);
+    return [
+      // 0 · random scatter
+      (i,n,ph)=>{ const a=Math.random()*6.283, r=20+Math.random()*R*0.36; return {dx:Math.cos(a)*r, dy:Math.sin(a)*r}; },
+      // 1 · even ring (rotates with phase → orbit)
+      (i,n,ph)=>{ const a=(i/n)*6.283 + (ph||0)*0.55, r=R*0.34; return {dx:Math.cos(a)*r, dy:Math.sin(a)*r}; },
+      // 2 · spiral (winds with phase)
+      (i,n,ph)=>{ const a=i*0.9 + (ph||0)*0.5, r=8+(i/n)*R*0.42; return {dx:Math.cos(a)*r, dy:Math.sin(a)*r}; },
+      // 3 · vertical columns
+      (i,n,ph)=>{ const cols=5, c=i%cols; return {dx:(c-(cols-1)/2)*(W*0.16)+(Math.random()*20-10), dy:(Math.random()*H*0.62-H*0.31)}; },
+      // 4 · horizontal wave (undulates with phase)
+      (i,n,ph)=>{ const x=(i/n-0.5)*W*0.82; return {dx:x, dy:Math.sin(i*0.8 + (ph||0)*0.7)*H*0.22}; },
+      // 5 · explode wide
+      (i,n,ph)=>{ const a=Math.random()*6.283, r=R*0.30+Math.random()*R*0.2; return {dx:Math.cos(a)*r, dy:Math.sin(a)*r}; },
+      // 6 · tight center jitter
+      (i,n,ph)=>({dx:Math.random()*64-32, dy:Math.random()*48-24}),
+      // 7 · diagonal sweep
+      (i,n,ph)=>{ const tt=(i/n-0.5); return {dx:tt*W*0.72+(Math.random()*30-15), dy:tt*H*0.5+(Math.random()*30-15)}; },
+      // 8 · two blobs
+      (i,n,ph)=>{ const bx=(i%2===0?-1:1)*W*0.2, a=Math.random()*6.283, r=Math.random()*R*0.16; return {dx:bx+Math.cos(a)*r, dy:Math.sin(a)*r}; },
+      // 9 · grid
+      (i,n,ph)=>{ const cols=Math.ceil(Math.sqrt(n)), rows=Math.ceil(n/cols), c=i%cols, r=Math.floor(i/cols); return {dx:(c-(cols-1)/2)*(W*0.13), dy:(r-(rows-1)/2)*(H*0.2)}; },
+      // 10 · SMILEY FACE — chips arrange into a round face, two eyes and a smile
+      (i,n,ph)=>{
+        const faceR = R*0.34;
+        const nOutline = Math.max(6, Math.round(n*0.42));
+        const nEye = Math.max(1, Math.round(n*0.08));
+        const nMouth = Math.max(4, n - nOutline - 2*nEye);
+        const jit = ()=> (Math.random()*6-3);
+        if(i < nOutline){ const a=(i/nOutline)*6.283 - 1.5708; return {dx:Math.cos(a)*faceR+jit(), dy:Math.sin(a)*faceR+jit()}; }
+        let j = i - nOutline;
+        if(j < nEye){ const a=(j/Math.max(1,nEye))*6.283, er=R*0.05; return {dx:-faceR*0.40+Math.cos(a)*er, dy:-faceR*0.34+Math.sin(a)*er}; }
+        j -= nEye;
+        if(j < nEye){ const a=(j/Math.max(1,nEye))*6.283, er=R*0.05; return {dx:faceR*0.40+Math.cos(a)*er, dy:-faceR*0.34+Math.sin(a)*er}; }
+        j -= nEye;
+        const t = nMouth<=1 ? 0 : (j/(nMouth-1) - 0.5);   // smile arc, dips in the middle
+        return {dx:t*faceR*1.15, dy:faceR*0.16 + (1-(2*t)*(2*t))*faceR*0.34};
+      },
+      // 11 · HEART — chips trace a heart outline
+      (i,n,ph)=>{
+        const t=(i/n)*6.283, k=R*0.021;
+        const hx=16*Math.pow(Math.sin(t),3);
+        const hy=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+        return {dx:hx*k, dy:-hy*k + R*0.02};
+      },
+    ];
+  }
+
+  // 10 distinct, fun-to-watch animation routines. One is picked at random each shuffle.
+  function buildRoutines(W, H){
+    const S = jumbleStyles(W, H);
+    const E = {
+      snappy:'cubic-bezier(.4,0,.3,1)', bounce:'cubic-bezier(.5,1.65,.4,.9)',
+      smooth:'cubic-bezier(.22,1,.36,1)', sharp:'cubic-bezier(.7,0,.2,1)',
+      elastic:'cubic-bezier(.5,1.8,.3,1)', linear:'linear'
+    };
+    const defs = [
+      { name:'Tornado',     seq:[2,2,2,1,2,1,2,2],      interval:150, dur:.44, ease:E.smooth,  rot:35, settle:'centerout' },
+      { name:'Fireworks',   seq:[5,6,5,6,5,6,5],        interval:140, dur:.40, ease:E.sharp,   rot:24, settle:'random' },
+      { name:'Conveyor',    seq:[4,4,4,4,4,4,4],        interval:185, dur:.50, ease:E.smooth,  rot:8,  settle:'lr' },
+      { name:'Pinball',     seq:[0,6,0,6,0,6,0,6],      interval:120, dur:.32, ease:E.bounce,  rot:48, settle:'random' },
+      { name:'Orbit',       seq:[1,1,1,1,1,1,1,1],      interval:155, dur:.50, ease:E.linear,  rot:0,  settle:'sequential' },
+      { name:'Columns',     seq:[3,3,3,3,3,3],          interval:165, dur:.42, ease:E.snappy,  rot:6,  settle:'lr' },
+      { name:'Magnet',      seq:[6,5,6,5,6,5,6,5],      interval:120, dur:.30, ease:E.elastic, rot:28, settle:'centerout' },
+      { name:'WaveMachine', seq:[4,8,4,8,4,8,4],        interval:160, dur:.46, ease:E.smooth,  rot:12, settle:'sequential' },
+      { name:'Chaos',       seq:[0,0,0,0,0,0,0,0,0,0],  interval:108, dur:.30, ease:E.snappy,  rot:55, settle:'all' },
+      { name:'GridMarch',   seq:[9,9,3,9,9,3,9],        interval:170, dur:.44, ease:E.sharp,   rot:5,  settle:'lr' },
+      // shape reveals — names briefly form a picture before snapping into groups
+      { name:'Smiley',      seq:[0,5,10,10,10],         interval:230, dur:.52, ease:E.smooth,  rot:0,  settle:'centerout', tidy:true, hold:true },
+      { name:'Heart',       seq:[5,0,11,11,11],         interval:230, dur:.52, ease:E.smooth,  rot:0,  settle:'random',    tidy:true, hold:true },
+    ];
+    return defs.map(d=>({ ...d, styles:d.seq.map(i=>S[i]) }));
+  }
+  // order in which groups fill during the settle (varies the finish)
+  function settleOrder(kind, G){
+    const order = [];
+    for(let i=0;i<G;i++) order.push(i);
+    if(kind==='random'){ for(let i=order.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [order[i],order[j]]=[order[j],order[i]]; } }
+    else if(kind==='centerout'){ const mid=(G-1)/2; order.sort((a,b)=>Math.abs(a-mid)-Math.abs(b-mid)); }
+    return order; // 'lr','sequential','all' keep natural index order
+  }
+
+  function runAnimation(groups, onDone){
+    animating = true;
+    stage.classList.remove('hidden');
+    stageHello.style.display = 'none';
+    stage.querySelectorAll('.chip').forEach(c=>c.remove());
+
+    const rect = stage.getBoundingClientRect();
+    const W = rect.width, H = rect.height, cx = W/2, cy = H/2;
+
+    const flat = [];
+    groups.forEach((g,gi)=> g.forEach(name=> flat.push({name, gi})));
+    const n = flat.length;
+
+    const chips = flat.map((item, idx)=>{
+      const el = document.createElement('div');
+      el.className = 'chip'; // stays neutral during the shuffle — no group color revealed yet
+      el.textContent = item.name;
+      stage.appendChild(el);
+      const w = el.offsetWidth, h = el.offsetHeight;
+      el.style.left = (cx - w/2) + 'px';
+      el.style.top = (cy - h/2) + 'px';
+      el.style.transform = 'translate(0,0) scale(.3)';
+      el.style.opacity = '0';
+      return {el, w, h, item, idx};
+    });
+
+    // ---- pick a fresh, distinct animation routine each shuffle ----
+    const routines = buildRoutines(W, H);
+    let rIdx = Math.floor(Math.random()*routines.length);
+    if(routines.length>1 && rIdx===lastRoutine) rIdx = (rIdx+1)%routines.length;
+    lastRoutine = rIdx;
+    const routine = routines[rIdx];
+    const passes = routine.styles.length;
+
+    function jumble(pass){
+      const style = routine.styles[pass % passes];
+      chips.forEach((c,i)=>{
+        const p = style(i, n, pass);
+        const rot = routine.tidy ? 0 : (Math.random()*2-1)*routine.rot;
+        const sc = routine.tidy ? 1 : (.8 + Math.random()*.35);
+        c.el.style.transition = `transform ${(routine.dur*SPEED).toFixed(3)}s ${routine.ease}, opacity .3s ease`;
+        c.el.style.transform = `translate(${p.dx}px, ${p.dy}px) rotate(${rot}deg) scale(${sc})`;
+        c.el.style.opacity = '1';
+      });
+    }
+
+    // quirky shuffle phrase — ONE random line for the whole shuffle
+    const phrases = getPhrases();
+    const cap = $('#stageCaption');
+    if(phrases.length){
+      cap.textContent = phrases[Math.floor(Math.random()*phrases.length)];
+      cap.classList.add('show');
+    }
+
+    // run this routine's passes
+    const passInterval = routine.interval * SPEED;
+    for(let pass=0; pass<passes; pass++){
+      setTimeout(()=>jumble(pass), pass*passInterval);
+    }
+
+    // ---- PHASE 2: GATHER — pull every name into a tight huddle at center ----
+    const gatherStart = passes*passInterval + (routine.hold ? 620 : 90)*SPEED;
+    const gatherDur = 0.42 * SPEED;
+    const gatherRadius = Math.min(W, H) * 0.06; // small, ball-like cluster
+    setTimeout(()=>{
+      cap.classList.remove('show');
+      chips.forEach(c=>{
+        const a = Math.random()*6.283, r = Math.random()*gatherRadius;
+        c.el.style.transition = `transform ${gatherDur.toFixed(3)}s cubic-bezier(.5,0,.2,1), opacity .3s ease`;
+        c.el.style.transform = `translate(${Math.cos(a)*r}px, ${Math.sin(a)*r}px) rotate(0deg) scale(.82)`;
+      });
+    }, gatherStart);
+
+    // tiny "inhale" pop right before the burst, for a clear beat
+    const burstStart = gatherStart + gatherDur*1000 + 260*SPEED;
+    setTimeout(()=>{
+      chips.forEach(c=>{
+        c.el.style.transition = `transform .14s ease-out`;
+        const cur = c.el.style.transform.replace(/scale\([^)]*\)/, 'scale(1.04)');
+        c.el.style.transform = cur;
+      });
+    }, burstStart - 150*SPEED);
+
+    // ---- PHASE 3: EXPLODE — the ball bursts into confetti and the names vanish ----
+    setTimeout(()=>{
+      const sr = stage.getBoundingClientRect();
+      const ox = sr.left + sr.width/2, oy = sr.top + sr.height/2;
+      // chips blow apart and disappear (no travelling to groups)
+      chips.forEach(c=>{
+        const a = Math.random()*6.283, r = 24 + Math.random()*70;
+        c.el.style.transition = 'transform .24s ease-out, opacity .22s ease-out';
+        c.el.style.transform = `translate(${Math.cos(a)*r}px, ${Math.sin(a)*r}px) scale(1.5)`;
+        c.el.style.opacity = '0';
+      });
+      fireConfetti(ox, oy);   // confetti shoots outward from the ball
+      // a beat later the group cards pop in — names appear straight out of the confetti
+      setTimeout(()=>{ animating = false; onDone(); }, 240*SPEED);
+    }, burstStart);
+  }
+
+  function computeTargets(groups, W, H){
+    const G = groups.length;
+    const cols = Math.min(G, Math.max(1, Math.round(Math.sqrt(G*W/H))));
+    const rows = Math.ceil(G/cols);
+    const colW = W/cols, rowH = H/rows;
+    const targets = [];
+    groups.forEach((g, gi)=>{
+      const cI = gi % cols, rI = Math.floor(gi/cols);
+      const gx = colW*cI + colW/2;
+      const gyTop = rowH*rI + 16;
+      const slot = [];
+      g.forEach((m, mi)=>{
+        const lineH = Math.min(24, (rowH-26)/Math.max(g.length,1));
+        slot.push({ x: gx, y: gyTop + mi*lineH + 8 });
+      });
+      targets.push(slot);
+    });
+    return targets;
+  }
+
+  // ---------- confetti ----------
+  const confettiCanvas = $('#confetti');
+  const cctx = confettiCanvas.getContext('2d');
+  function fireConfetti(ox, oy){
+    const DPR = window.devicePixelRatio || 1;
+    confettiCanvas.width = innerWidth*DPR; confettiCanvas.height = innerHeight*DPR;
+    cctx.setTransform(DPR,0,0,DPR,0,0);
+    const colors = ['#7a9474','#c08457','#6f8fb0','#a878a0','#b0a35a','#6fa3a0'];
+    const cx = (ox==null ? innerWidth/2 : ox), cy = (oy==null ? innerHeight*0.4 : oy);
+    const N = 180, parts = [];
+    for(let i=0;i<N;i++){
+      const ang = Math.random()*6.283;            // burst outward in every direction
+      const spd = 4 + Math.random()*13;
+      parts.push({
+        x: cx, y: cy,
+        vx: Math.cos(ang)*spd, vy: Math.sin(ang)*spd - 2,
+        g: .16+Math.random()*.12, s: 5+Math.random()*7,
+        rot: Math.random()*6.28, vr: (Math.random()-.5)*.4,
+        c: colors[i%colors.length], life: 0, max: 75+Math.random()*45
+      });
+    }
+    let raf;
+    const draw = ()=>{
+      cctx.clearRect(0,0,innerWidth,innerHeight);
+      let alive = false;
+      parts.forEach(p=>{
+        if(p.life>p.max) return;
+        alive = true; p.life++;
+        p.vy += p.g; p.x += p.vx; p.y += p.vy; p.vx *= .99; p.rot += p.vr;
+        const a = Math.max(0, 1 - p.life/p.max);
+        cctx.save(); cctx.globalAlpha = a; cctx.translate(p.x,p.y); cctx.rotate(p.rot);
+        cctx.fillStyle = p.c; cctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6); cctx.restore();
+      });
+      if(alive) raf = requestAnimationFrame(draw);
+      else cctx.clearRect(0,0,innerWidth,innerHeight);
+    };
+    cancelAnimationFrame(raf); draw();
+  }
+
+  // reset the right-side canvas to its empty state (re-injects markup so it
+  // works even after a previous render replaced the original empty node)
+  function showEmptyCanvas(titleText, metaText){
+    lastResult = null;
+    resultsActions.style.display = 'none';
+    dragTip.style.display = 'none';
+    stage.classList.add('hidden');
+    stageHello.style.display = 'none';
+    canvasTitle.textContent = titleText || 'Your groups';
+    canvasMeta.textContent = metaText || 'Set up the roster on the left, then hit Randomize.';
+    results.innerHTML = '<div class="empty-canvas"><div><div class="big">No groups yet</div><div>Your randomized groups will appear here.</div></div></div>';
+  }
+
+  // ---------- render results ----------
+  function renderResults(groups, animateIn){
+    lastResult = groups;
+    const title = titleEl.value.trim() || 'Untitled group';
+    const total = groups.reduce((s,g)=>s+g.length,0);
+    const repeat = $('#avoidRepeat').checked;
+
+    canvasTitle.textContent = title;
+    canvasMeta.textContent = `${groups.length} groups · ${total} students`
+      + (repeat?' · avoiding repeats':'')
+      + (keepApart.length?` · ${keepApart.length} keep-apart rule${keepApart.length>1?'s':''}`:'');
+    resultsActions.style.display = 'flex';
+    emptyCanvas.style.display = 'none';
+    dragTip.style.display = 'flex';
+
+    let html = `<div class="groups">`;
+    groups.forEach((g, gi)=>{
+      html += `<div class="group acc-${gi%tints}" data-gi="${gi}" style="animation-delay:${animateIn?gi*70:0}ms">
+        <div class="g-head"><span class="g-dot"></span><span class="g-title">Group ${gi+1}</span><span class="g-num">${g.length}</span></div>
+        <div class="g-members" data-gi="${gi}">`;
+      g.forEach((m, mi)=>{
+        // when animating, members start hidden (but reserve their space) and get
+        // "sprinkled" in one by one after the blank cards land
+        html += `<div class="member${animateIn?' m-hidden':''}" draggable="true" data-gi="${gi}" data-mi="${mi}" data-name="${escapeHtml(m)}">
+          <span class="av">${escapeHtml(initials(m))}</span><span class="m-name">${escapeHtml(m)}</span>
+          <span class="grip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+        </div>`;
+      });
+      html += `</div></div>`;
+    });
+    html += `</div>`;
+    results.innerHTML = html;
+
+    if(animateIn){
+      // blank group cards pop in first...
+      requestAnimationFrame(()=> results.querySelectorAll('.group').forEach(el=>el.classList.add('in')));
+      // ...then sprinkle the names in, scattered across all groups, like confetti landing
+      const members = shuffle([...results.querySelectorAll('.member.m-hidden')]);
+      const stagger = Math.max(16, Math.min(48, Math.round(700 / Math.max(1, members.length))));
+      const startDelay = 240; // wait for the empty cards to land
+      members.forEach((el, i)=>{
+        setTimeout(()=>{ el.classList.remove('m-hidden'); el.classList.add('m-in'); }, startDelay + i*stagger);
+      });
+    } else {
+      results.querySelectorAll('.group').forEach(el=>el.classList.add('in'));
+    }
+
+    wireDragAndDrop();
+    saveState();
+  }
+
+  // ---------- drag & drop to move/swap students ----------
+  let dragName = null, dragFromGi = null;
+  function wireDragAndDrop(){
+    results.querySelectorAll('.member').forEach(el=>{
+      el.addEventListener('dragstart', e=>{
+        dragName = el.dataset.name; dragFromGi = +el.dataset.gi;
+        el.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        try{ e.dataTransfer.setData('text/plain', dragName); }catch(_){}
+      });
+      el.addEventListener('dragend', ()=>{ el.classList.remove('dragging'); clearDropTargets(); });
+    });
+    results.querySelectorAll('.group').forEach(g=>{
+      g.addEventListener('dragover', e=>{ e.preventDefault(); g.classList.add('drop-target'); });
+      g.addEventListener('dragleave', ()=>g.classList.remove('drop-target'));
+      g.addEventListener('drop', e=>{
+        e.preventDefault();
+        const toGi = +g.dataset.gi;
+        moveStudent(dragName, dragFromGi, toGi);
+        clearDropTargets();
+      });
+    });
+  }
+  function clearDropTargets(){ results.querySelectorAll('.group').forEach(g=>g.classList.remove('drop-target')); }
+  function moveStudent(name, fromGi, toGi){
+    if(name==null || fromGi===toGi || !lastResult) return;
+    const from = lastResult[fromGi], to = lastResult[toGi];
+    const idx = from.indexOf(name); if(idx<0) return;
+    from.splice(idx,1); to.push(name);
+    renderResults(lastResult, false);
+    showToast(`Moved ${name} to Group ${toGi+1}`);
+  }
+
+  // ---------- roll ----------
+  const rollBtn = $('#rollBtn');
+  function doRoll(){
+    if(animating) return;
+    const roster = getNames();
+    if(roster.length < 2){ showToast('Add at least 2 students first'); return; }
+    const groups = makeGroups();
+    if(!groups) return;
+    rollBtn.disabled = true;
+    results.innerHTML = '';
+    emptyCanvas.style.display = 'none';
+    dragTip.style.display = 'none';
+    resultsActions.style.display = 'none';
+    canvasTitle.textContent = 'Shuffling…';
+    canvasMeta.textContent = 'Mixing students into fair groups';
+    runAnimation(groups, ()=>{
+      rollBtn.disabled = false;
+      stage.querySelectorAll('.chip').forEach(c=>c.remove()); // exploded chips are gone
+      // collapse the stage so the cards appear right where the confetti is bursting.
+      // (The idle "Ready when you are" prompt is gone for good after the first shuffle.)
+      stage.classList.add('hidden');
+      renderResults(groups, true);   // names pop in straight out of the confetti
+      ensureSavedSession();          // first randomize auto-saves; re-rolls auto-update
+    });
+  }
+  rollBtn.addEventListener('click', doRoll);
+  $('#rerollBtn').addEventListener('click', doRoll);
+  $('#printBtn2').addEventListener('click', ()=>window.print());
+
+  // ---------- save / load ----------
+  function loadSessions(){ try { return JSON.parse(localStorage.getItem(LS_SESSIONS)) || []; } catch(e){ return []; } }
+  function storeSessions(s){ localStorage.setItem(LS_SESSIONS, JSON.stringify(s)); }
+  function refreshSavedList(){
+    const sessions = loadSessions();
+    savedList.innerHTML = '<option value="">— Saved groups —</option>' +
+      sessions.map(s=>`<option value="${s.id}">${escapeHtml(s.title)} · ${s.names.length} · ${s.when}</option>`).join('');
+    savedList.value = (currentSessionId != null) ? currentSessionId : '';
+  }
+
+  // Keep the currently-loaded list continuously in sync with the working state —
+  // no need to press Save. Called from saveState() on every change.
+  function autoSyncSession(){
+    if(currentSessionId == null) return;
+    const sessions = loadSessions();
+    const idx = sessions.findIndex(s=>s.id===currentSessionId);
+    if(idx < 0){ currentSessionId = null; return; }
+    const s = sessions[idx];
+    s.title = titleEl.value.trim() || 'Untitled group';
+    s.names = getNames();
+    s.mode = mode; s.size = parseInt(sizeVal.value)||1;
+    s.avoidRepeat = $('#avoidRepeat').checked;
+    s.result = lastResult; s.keepApart = keepApart.slice();
+    storeSessions(sessions);
+    refreshSavedList();
+  }
+
+  // Auto-create a saved list the first time you randomize an unsaved roster.
+  // After this, autoSyncSession() (via saveState) keeps it updated on every change,
+  // including each "Randomize again".
+  function ensureSavedSession(){
+    if(currentSessionId != null) return;        // already a saved list
+    const roster = getNames();
+    if(roster.length === 0) return;
+    const sessions = loadSessions();
+    const when = new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
+    const id = genId();
+    sessions.unshift({
+      id, title: titleEl.value.trim() || 'Untitled group',
+      names: roster, mode, size: parseInt(sizeVal.value)||1,
+      avoidRepeat: $('#avoidRepeat').checked, result: lastResult,
+      keepApart: keepApart.slice(), when
+    });
+    storeSessions(sessions.slice(0,30));
+    currentSessionId = id;
+    saveState();
+    refreshSavedList();
+    showToast('Saved automatically');
+  }
+
+  $('#saveBtn').addEventListener('click', ()=>{
+    const roster = getNames();
+    if(roster.length === 0){ showToast('Nothing to save yet'); return; }
+    if(currentSessionId != null){ autoSyncSession(); showToast('Saved'); return; } // already a live list
+    const sessions = loadSessions();
+    const when = new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
+    const id = genId();
+    sessions.unshift({
+      id, title: titleEl.value.trim() || 'Untitled group',
+      names: roster, mode, size: parseInt(sizeVal.value)||1,
+      avoidRepeat: $('#avoidRepeat').checked, result: lastResult,
+      keepApart: keepApart.slice(), when
+    });
+    storeSessions(sessions.slice(0,30));
+    currentSessionId = id;
+    saveState();
+    refreshSavedList(); showToast('Saved — changes now save automatically');
+  });
+  savedList.addEventListener('change', ()=>{
+    const id = savedList.value;
+    if(id === ''){ currentSessionId = null; keepApart = []; saveState(); return; }
+    const s = loadSessions().find(x=>x.id===id); if(!s) return;
+    currentSessionId = s.id;
+    names.value = s.names.join('\n');
+    titleEl.value = s.title;
+    mode = s.mode || 'groups';
+    document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on', x.dataset.mode===mode));
+    numLabel.textContent = mode==='groups'?'Groups':'Per group';
+    sizeVal.value = s.size || 5;
+    $('#avoidRepeat').checked = !!s.avoidRepeat;
+    keepApart = Array.isArray(s.keepApart) ? s.keepApart.slice() : [];  // this list's own rules
+    lastResult = s.result || null;
+    updateCount();
+    saveState();
+    stage.classList.add('hidden'); stageHello.style.display='none';
+    if(s.result){ renderResults(s.result, true); }
+    else { showEmptyCanvas(s.title, 'Loaded — hit Randomize to make groups.'); }
+    showToast('Loaded "'+s.title+'"');
+  });
+  $('#printBtn').addEventListener('click', ()=>{
+    if(!lastResult){ showToast('Randomize first to print groups'); return; }
+    window.print();
+  });
+
+  // ---------- New group: a clean slate (this is the proper "new list" action) ----------
+  function newList(){
+    currentSessionId = null;     // not tied to any saved list yet
+    keepApart = [];              // brand-new list starts with NO conditions
+    lastResult = null;
+    titleEl.value = '';
+    names.value = '';
+    mode = 'groups';
+    document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on', x.dataset.mode==='groups'));
+    numLabel.textContent = 'Groups';
+    sizeVal.value = 5;
+    $('#avoidRepeat').checked = false;
+    savedList.value = '';
+    updateCount();
+    saveState();
+    showEmptyCanvas('New group', 'Name it, add your students, set any keep-apart conditions, then Randomize.');
+    refreshSavedList();
+    titleEl.focus();
+    showToast('Started a new group');
+  }
+  $('#newBtn').addEventListener('click', newList);
+
+  // ---------- Clear groups: wipe the result but KEEP the roster (and conditions) ----------
+  $('#clearBtn').addEventListener('click', ()=>{
+    showEmptyCanvas(titleEl.value.trim() || 'Your groups', 'Groups cleared — hit Randomize to make new ones.');
+    saveState();   // syncs result=null into the loaded list; names & conditions stay
+    showToast('Groups cleared');
+  });
+
+  // ---------- confirm dialog ----------
+  function askConfirm(title, msg, okLabel, onOk){
+    const ov = $('#confirmOverlay');
+    $('#confirmTitle').textContent = title;
+    $('#confirmMsg').textContent = msg;
+    const ok = $('#confirmOk'), cancel = $('#confirmCancel');
+    ok.textContent = okLabel || 'Delete';
+    ov.classList.add('show');
+    function cleanup(){ ov.classList.remove('show'); ok.removeEventListener('click', okH); cancel.removeEventListener('click', cancelH); ov.removeEventListener('click', bgH); }
+    function okH(){ cleanup(); onOk(); }
+    function cancelH(){ cleanup(); }
+    function bgH(e){ if(e.target===ov) cleanup(); }
+    ok.addEventListener('click', okH);
+    cancel.addEventListener('click', cancelH);
+    ov.addEventListener('click', bgH);
+  }
+
+  // ---------- delete a saved session ----------
+  $('#deleteBtn').addEventListener('click', ()=>{
+    const id = savedList.value;
+    if(id === ''){ showToast('Pick a saved group to delete'); return; }
+    const sessions = loadSessions();
+    const idx = sessions.findIndex(s=>s.id===id);
+    if(idx < 0) return;
+    const s = sessions[idx];
+    askConfirm('Delete this group?', `“${s.title}” will be permanently removed.`, 'Delete', ()=>{
+      sessions.splice(idx, 1);
+      storeSessions(sessions);
+      if(currentSessionId === id){
+        currentSessionId = null;
+        keepApart = [];        // the deleted list's conditions must NOT carry over
+      }
+      refreshSavedList();
+      savedList.value = '';
+      showEmptyCanvas();   // wipe the deleted list's groups off the right side
+      saveState();
+      showToast('Saved group deleted');
+    });
+  });
+
+  // ---------- teacher keep-apart ----------
+  // brief "Saved ✓" pip confirming gear changes persist without closing the panel
+  function flashSaved(){
+    const t = $('#autosaveTag'); if(!t) return;
+    t.classList.add('show');
+    clearTimeout(flashSaved._t);
+    flashSaved._t = setTimeout(()=>t.classList.remove('show'), 1400);
+  }
+  const overlay = $('#overlay');
+  $('#gearBtn').addEventListener('click', ()=>{ pruneKeepApart(); populatePairSelects(); renderPairs(); renderPhrases(); overlay.classList.add('show'); });
+  $('#modalX').addEventListener('click', ()=>overlay.classList.remove('show'));
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.classList.remove('show'); });
+
+  // keep-apart rules belong to THIS list only. The selects show only the
+  // current roster's names; switching/loading a list swaps the rules entirely.
+  function pruneKeepApart(){
+    // drop any rule referencing a student no longer in the roster
+    const roster = new Set(getNames());
+    const before = keepApart.length;
+    keepApart = keepApart.filter(p => roster.has(p[0]) && roster.has(p[1]));
+    if(keepApart.length !== before) saveState();
+  }
+  function populatePairSelects(){
+    const roster = getNames();
+    const opts = '<option value="">Student…</option>' + roster.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+    const a = $('#paStudentA'), b = $('#paStudentB');
+    if(a) a.innerHTML = opts; if(b) b.innerHTML = opts;
+  }
+  function renderPairs(){
+    const ctx = $('#paContext');
+    if(ctx){
+      const t = titleEl.value.trim() || 'this list';
+      const n = getNames().length;
+      ctx.innerHTML = `Rules for <b>${escapeHtml(t)}</b> · ${n} student${n===1?'':'s'}`;
+    }
+    const list = $('#pairsList');
+    if(getNames().length === 0){ list.innerHTML = '<div class="pairs-empty">Add students to this list first.</div>'; return; }
+    if(keepApart.length === 0){ list.innerHTML = '<div class="pairs-empty">No keep-apart rules for this list yet.</div>'; return; }
+    list.innerHTML = keepApart.map((p,i)=>`
+      <div class="pair"><span>${escapeHtml(p[0])}</span><span class="vs">⊘ keep apart from</span><span>${escapeHtml(p[1])}</span>
+      <button class="rm" data-i="${i}" aria-label="Remove">&times;</button></div>`).join('');
+    list.querySelectorAll('.rm').forEach(btn=>btn.addEventListener('click', ()=>{
+      keepApart.splice(+btn.dataset.i,1); saveState(); renderPairs(); flashSaved();
+    }));
+  }
+  $('#addPair').addEventListener('click', ()=>{
+    const a = $('#paStudentA').value, b = $('#paStudentB').value;
+    if(!a || !b || a===b){ showToast('Pick two different students'); return; }
+    if(keepApart.some(p=>(p[0]===a&&p[1]===b)||(p[0]===b&&p[1]===a))){ showToast('That pair is already added'); return; }
+    keepApart.push([a,b]);
+    ensureSavedSession();   // create/attach a saved list so the condition persists even before randomizing
+    saveState();            // sync the condition into that list
+    renderPairs(); flashSaved();
+    $('#paStudentA').value=''; $('#paStudentB').value='';
+  });
+
+  // ---------- shuffle phrases (teacher-editable) ----------
+  function getPhrases(){ try{ const p = JSON.parse(localStorage.getItem(LS_PHRASES)); return Array.isArray(p) ? p : DEFAULT_PHRASES.slice(); }catch(e){ return DEFAULT_PHRASES.slice(); } }
+  function storePhrases(arr){ localStorage.setItem(LS_PHRASES, JSON.stringify(arr)); }
+  function renderPhrases(){
+    const list = $('#phrasesList');
+    const phrases = getPhrases();
+    if(phrases.length === 0){ list.innerHTML = '<div class="pairs-empty">No phrases — the shuffle will be silent.</div>'; return; }
+    list.innerHTML = phrases.map((p,i)=>`
+      <div class="pair"><span>${escapeHtml(p)}</span>
+      <button class="rm" data-i="${i}" aria-label="Remove">&times;</button></div>`).join('');
+    list.querySelectorAll('.rm').forEach(btn=>btn.addEventListener('click', ()=>{
+      const arr = getPhrases(); arr.splice(+btn.dataset.i,1); storePhrases(arr); renderPhrases(); flashSaved();
+    }));
+  }
+  function addPhraseFromInput(){
+    const inp = $('#phraseInput'), v = inp.value.trim();
+    if(!v){ showToast('Type a phrase first'); return; }
+    const arr = getPhrases(); arr.push(v); storePhrases(arr);
+    inp.value=''; renderPhrases(); flashSaved();
+  }
+  $('#addPhrase').addEventListener('click', addPhraseFromInput);
+  $('#phraseInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); addPhraseFromInput(); } });
+
+  // ---------- persist working state ----------
+  function saveState(){
+    localStorage.setItem(LS_STATE, JSON.stringify({
+      names: names.value, title: titleEl.value, mode, size: sizeVal.value,
+      avoidRepeat: $('#avoidRepeat').checked, result: lastResult,
+      keepApart: keepApart, currentSessionId
+    }));
+    autoSyncSession();   // push changes into the loaded saved list automatically
+  }
+  function loadState(){
+    try{
+      const s = JSON.parse(localStorage.getItem(LS_STATE));
+      if(!s) return false;
+      names.value = s.names||''; titleEl.value = s.title||'';
+      mode = s.mode||'groups';
+      document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on', x.dataset.mode===mode));
+      numLabel.textContent = mode==='groups'?'Groups':'Per group';
+      sizeVal.value = s.size||5;
+      $('#avoidRepeat').checked = !!s.avoidRepeat;
+      keepApart = Array.isArray(s.keepApart) ? s.keepApart : [];
+      currentSessionId = s.currentSessionId != null ? s.currentSessionId : null;
+      if(s.result){ lastResult = s.result; }
+      return true;
+    }catch(e){ return false; }
+  }
+
+  function seed(){
+    if(!localStorage.getItem(LS_SESSIONS)){
+      const r1 = [["Maya Patel","Noah Kim","Grace Lin","Diego Santos"],["Avery Thompson","Sofia Ramirez","Owen Murphy","Zara Hussain"],["Jordan Lee","Ethan Nguyen","Emma Walsh","Ravi Sharma"]];
+      storeSessions([
+        { id:"seed-p2", title:"Period 2 — Reading Circles", names:["Maya Patel","Noah Kim","Grace Lin","Diego Santos","Avery Thompson","Sofia Ramirez","Owen Murphy","Zara Hussain","Jordan Lee","Ethan Nguyen","Emma Walsh","Ravi Sharma"], mode:"groups", size:3, avoidRepeat:false, result:r1, keepApart:[["Noah Kim","Ethan Nguyen"]], when:"May 28" },
+        { id:"seed-p5", title:"Period 5 — Lab Partners", names:["Liam O'Connor","Isabella Rossi","Mason Clarke","Amara Okafor","Lucas Müller","Chloe Andersson","Hannah Goldberg","Caleb Foster"], mode:"size", size:2, avoidRepeat:true, result:[["Liam O'Connor","Amara Okafor"],["Isabella Rossi","Lucas Müller"],["Mason Clarke","Hannah Goldberg"],["Chloe Andersson","Caleb Foster"]], keepApart:[["Mason Clarke","Caleb Foster"]], when:"May 30" },
+        { id:"seed-debate", title:"Debate Teams — Final", names:["Naomi Cohen","Felix Dubois","Tobias Vega","Olivia Bennett","Maya Patel","Noah Kim","Ravi Sharma","Emma Walsh"], mode:"groups", size:2, avoidRepeat:false, result:[["Naomi Cohen","Olivia Bennett","Ravi Sharma","Felix Dubois"],["Tobias Vega","Maya Patel","Noah Kim","Emma Walsh"]], keepApart:[], when:"Jun 1" }
+      ]);
+    }
+    if(!localStorage.getItem(LS_PHRASES)){
+      storePhrases(DEFAULT_PHRASES.slice());
+    }
+    // migration: backfill a stable id onto any older session missing one,
+    // otherwise it can't be selected/deleted (its dropdown value is "undefined").
+    const existing = loadSessions();
+    let changed = false;
+    existing.forEach(s=>{ if(!s.id){ s.id = genId(); changed = true; } });
+    if(changed) storeSessions(existing);
+  }
+
+  seed();
+  const restored = loadState();   // restores this list's own keep-apart rules
+  if(!restored){ names.value = SAMPLE.join('\n'); titleEl.value = ''; keepApart = []; }
+  updateCount();
+  refreshSavedList();
+  if(lastResult){ renderResults(lastResult, false); stage.classList.add('hidden'); stageHello.style.display='none'; }
+
+  // keyboard: Ctrl/Cmd+Enter to randomize
+  document.addEventListener('keydown', e=>{
+    if((e.metaKey||e.ctrlKey) && e.key === 'Enter'){ e.preventDefault(); doRoll(); }
+  });
+})();
+</script>
+</body>
+</html>

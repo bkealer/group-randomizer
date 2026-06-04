@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Group Maker — Soft Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f6f1e9;
+    --paper-2: #fbf8f2;
+    --card: #fffdf9;
+    --ink: #38322b;
+    --ink-soft: #6b6258;
+    --ink-faint: #9a9085;
+    --line: #ebe3d6;
+    --line-2: #e0d6c5;
+    --sage: #7a9474;
+    --sage-deep: #5f7a5a;
+    --sage-soft: #e7eee2;
+    --terra: #c08457;
+    --terra-soft: #f3e6d8;
+    --shadow-sm: 0 1px 2px rgba(56, 50, 43, 0.04), 0 2px 6px rgba(56, 50, 43, 0.05);
+    --shadow-md: 0 4px 14px rgba(56, 50, 43, 0.07), 0 1px 3px rgba(56, 50, 43, 0.05);
+    --shadow-lg: 0 14px 40px rgba(56, 50, 43, 0.12);
+    --r-lg: 22px;
+    --r-md: 16px;
+    --r-sm: 11px;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #efe7da 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 10%, #f0ebe0 0%, transparent 55%),
+      var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 40px 24px 100px;
+  }
+
+  /* ---------- Header ---------- */
+  header.app {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-mark {
+    width: 46px; height: 46px; border-radius: 14px;
+    background: linear-gradient(150deg, var(--sage) 0%, var(--sage-deep) 100%);
+    display: grid; place-items: center;
+    box-shadow: var(--shadow-md);
+    flex-shrink: 0;
+  }
+  .brand-mark svg { width: 24px; height: 24px; }
+  .brand h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 27px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+  .brand p {
+    margin: 2px 0 0; font-size: 13.5px; color: var(--ink-soft);
+  }
+
+  .gear-btn {
+    border: 1px solid var(--line-2);
+    background: var(--card);
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    display: grid; place-items: center;
+    cursor: pointer;
+    color: var(--ink-faint);
+    transition: all .2s var(--ease);
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+  }
+  .gear-btn:hover { color: var(--ink-soft); transform: rotate(35deg); border-color: var(--line); }
+  .gear-btn svg { width: 18px; height: 18px; }
+
+  /* ---------- Cards ---------- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 18px;
+  }
+  .card-head {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .card-head .step {
+    font-size: 11px; font-weight: 600;
+    color: var(--sage-deep);
+    background: var(--sage-soft);
+    padding: 3px 9px; border-radius: 20px;
+    letter-spacing: .03em;
+  }
+  .card-head h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 18px; font-weight: 600; margin: 0;
+    letter-spacing: -0.005em;
+  }
+  .card-head .spacer { flex: 1; }
+
+  label.fld { display: block; font-size: 13px; font-weight: 500; color: var(--ink-soft); margin-bottom: 7px; }
+
+  textarea, input[type=text], input[type=number] {
+    font-family: inherit;
+    color: var(--ink);
+    background: var(--paper-2);
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-sm);
+    padding: 12px 14px;
+    font-size: 14.5px;
+    width: 100%;
+    transition: border-color .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease);
+  }
+  textarea:focus, input:focus {
+    outline: none;
+    border-color: var(--sage);
+    background: var(--card);
+    box-shadow: 0 0 0 3px rgba(122, 148, 116, 0.16);
+  }
+  textarea {
+    min-height: 168px; resize: vertical; line-height: 1.65;
+  }
+  ::placeholder { color: var(--ink-faint); }
+
+  .ta-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 10px; font-size: 13px;
+  }
+  .count {
+    color: var(--ink-soft); font-weight: 500;
+  }
+  .count b { color: var(--sage-deep); font-weight: 600; }
+  .linkish {
+    color: var(--sage-deep); font-weight: 500; cursor: pointer;
+    text-decoration: none; border-bottom: 1px dashed rgba(95,122,90,.45);
+    padding-bottom: 1px; transition: color .15s, border-color .15s;
+  }
+  .linkish:hover { color: var(--sage); border-color: var(--sage); }
+
+  /* ---------- Segmented ---------- */
+  .seg {
+    display: inline-flex; background: var(--paper-2);
+    border: 1px solid var(--line-2); border-radius: 12px; padding: 4px;
+    gap: 4px;
+  }
+  .seg button {
+    border: none; background: transparent; cursor: pointer;
+    font-family: inherit; font-size: 13.5px; font-weight: 500;
+    color: var(--ink-soft); padding: 8px 16px; border-radius: 9px;
+    transition: all .2s var(--ease);
+  }
+  .seg button.on {
+    background: var(--card); color: var(--ink);
+    box-shadow: var(--shadow-sm); font-weight: 600;
+  }
+
+  .size-row {
+    display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap;
+  }
+  .num-wrap { width: 110px; flex-shrink: 0; }
+  .num-stepper { display: flex; align-items: stretch; }
+  .num-stepper input { text-align: center; border-radius: 0; border-left: none; border-right: none; -moz-appearance: textfield; }
+  .num-stepper input::-webkit-outer-spin-button,
+  .num-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .stepbtn {
+    width: 36px; border: 1px solid var(--line-2); background: var(--paper-2);
+    cursor: pointer; color: var(--ink-soft); font-size: 18px; line-height: 1;
+    transition: background .15s;
+  }
+  .stepbtn:hover { background: var(--sage-soft); color: var(--sage-deep); }
+  .stepbtn.minus { border-radius: var(--r-sm) 0 0 var(--r-sm); }
+  .stepbtn.plus { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+
+  .hint {
+    flex: 1; min-width: 200px;
+    font-size: 13.5px; color: var(--ink-soft);
+    background: var(--sage-soft);
+    border-radius: var(--r-sm);
+    padding: 11px 14px;
+    line-height: 1.45;
+  }
+  .hint .arrow { color: var(--sage-deep); font-weight: 600; }
+
+  /* ---------- Options + Randomize ---------- */
+  .opts {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .switch {
+    display: inline-flex; align-items: center; gap: 10px;
+    cursor: pointer; font-size: 13.5px; color: var(--ink-soft); user-select: none;
+  }
+  .switch input { display: none; }
+  .track {
+    width: 40px; height: 23px; border-radius: 20px;
+    background: var(--line-2); position: relative; transition: background .22s var(--ease);
+    flex-shrink: 0;
+  }
+  .track::after {
+    content: ''; position: absolute; top: 2.5px; left: 2.5px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.18);
+    transition: transform .22s var(--ease);
+  }
+  .switch input:checked + .track { background: var(--sage); }
+  .switch input:checked + .track::after { transform: translateX(17px); }
+  .switch .lbl b { color: var(--ink); font-weight: 600; }
+  .switch .sub { font-size: 11.5px; color: var(--ink-faint); }
+
+  .btn {
+    font-family: inherit; font-weight: 600; font-size: 15px;
+    border: none; cursor: pointer; border-radius: 13px;
+    padding: 14px 26px; transition: all .2s var(--ease);
+    display: inline-flex; align-items: center; gap: 9px; justify-content: center;
+  }
+  .btn-primary {
+    background: linear-gradient(150deg, var(--sage) 0%, var(--sage-deep) 100%);
+    color: #fff; box-shadow: 0 6px 18px rgba(95, 122, 90, 0.32);
+    width: 100%;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(95, 122, 90, 0.38); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: .55; cursor: default; transform: none; box-shadow: 0 6px 18px rgba(95, 122, 90, 0.2); }
+  .btn-primary svg { width: 19px; height: 19px; }
+
+  .btn-ghost {
+    background: var(--card); color: var(--ink-soft);
+    border: 1px solid var(--line-2); box-shadow: var(--shadow-sm);
+    font-size: 13.5px; padding: 10px 16px;
+  }
+  .btn-ghost:hover { border-color: var(--line); color: var(--ink); background: var(--paper-2); }
+  .btn-ghost svg { width: 16px; height: 16px; }
+
+  /* ---------- Save / Load row ---------- */
+  .sl-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+  .sl-row .grow { flex: 1; min-width: 180px; }
+  select {
+    font-family: inherit; font-size: 14px; color: var(--ink);
+    background: var(--paper-2); border: 1px solid var(--line-2);
+    border-radius: var(--r-sm); padding: 11px 13px; width: 100%;
+    cursor: pointer; transition: border-color .15s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239a9085' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 13px center;
+    padding-right: 34px;
+  }
+  select:focus { outline: none; border-color: var(--sage); }
+
+  /* ---------- Stage (animation) ---------- */
+  .stage-card { position: relative; overflow: hidden; }
+  .stage {
+    position: relative; height: 260px;
+    border-radius: var(--r-md);
+    background:
+      radial-gradient(420px 220px at 50% 40%, #fff 0%, var(--paper-2) 70%);
+    border: 1px dashed var(--line-2);
+    display: grid; place-items: center;
+    overflow: hidden;
+  }
+  .stage .hello {
+    text-align: center; color: var(--ink-faint); padding: 0 20px;
+  }
+  .stage .hello .big {
+    font-family: 'Fraunces', serif; font-size: 20px; color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .chip {
+    position: absolute;
+    font-size: 13px; font-weight: 550;
+    background: var(--card); color: var(--ink);
+    border: 1px solid var(--line-2);
+    border-radius: 20px; padding: 6px 13px;
+    box-shadow: var(--shadow-md);
+    white-space: nowrap;
+    will-change: transform, opacity;
+    pointer-events: none;
+  }
+  .chip.tinted-0 { background: var(--sage-soft); border-color: #d5e1cd; }
+  .chip.tinted-1 { background: var(--terra-soft); border-color: #ecd9c5; }
+  .chip.tinted-2 { background: #e9eef3; border-color: #d6dfe7; }
+  .chip.tinted-3 { background: #f3eaf1; border-color: #e6d3e2; }
+  .chip.tinted-4 { background: #f0efdc; border-color: #e1dfc2; }
+  .chip.tinted-5 { background: #e3eef0; border-color: #cfe0e3; }
+
+  /* ---------- Results ---------- */
+  #results { margin-top: 4px; }
+  .results-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+  }
+  .results-head h2 {
+    font-family: 'Fraunces', serif; font-size: 21px; margin: 0; font-weight: 600;
+  }
+  .results-head .meta { font-size: 13px; color: var(--ink-faint); margin-top: 3px; }
+  .results-actions { display: flex; gap: 9px; flex-wrap: wrap; }
+
+  .groups {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  }
+  .group {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 16px 16px 14px;
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    transform: translateY(14px) scale(.97);
+  }
+  .group.in { animation: popIn .5s var(--ease) forwards; }
+  @keyframes popIn { to { opacity: 1; transform: none; } }
+  .group .g-head {
+    display: flex; align-items: center; gap: 9px; margin-bottom: 11px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--line);
+  }
+  .g-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .group .g-title { font-weight: 600; font-size: 14.5px; }
+  .group .g-num { font-size: 11.5px; color: var(--ink-faint); margin-left: auto; font-weight: 500; }
+  .member {
+    font-size: 14px; padding: 5px 0; color: var(--ink);
+    display: flex; align-items: center; gap: 9px;
+  }
+  .member .av {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    display: grid; place-items: center; font-size: 11px; font-weight: 600;
+    color: #fff;
+  }
+
+  /* tinted group accents */
+  .acc-0 { --g: #7a9474; } .acc-1 { --g: #c08457; }
+  .acc-2 { --g: #6f8fb0; } .acc-3 { --g: #a878a0; }
+  .acc-4 { --g: #b0a35a; } .acc-5 { --g: #6fa3a0; }
+  .acc-0 .g-dot, .acc-1 .g-dot, .acc-2 .g-dot, .acc-3 .g-dot,
+  .acc-4 .g-dot, .acc-5 .g-dot { background: var(--g); }
+  .acc-0 .av, .acc-1 .av, .acc-2 .av, .acc-3 .av,
+  .acc-4 .av, .acc-5 .av { background: var(--g); }
+
+  .empty-results {
+    text-align: center; padding: 30px 20px; color: var(--ink-faint); font-size: 14px;
+  }
+
+  /* ---------- Modal (keep-apart / teacher) ---------- */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(56,50,43,.34);
+    backdrop-filter: blur(3px);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px; z-index: 50;
+  }
+  .overlay.show { display: flex; animation: fade .2s ease; }
+  @keyframes fade { from { opacity: 0; } }
+  .modal {
+    background: var(--card); border-radius: var(--r-lg);
+    width: 100%; max-width: 460px; box-shadow: var(--shadow-lg);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    transform: translateY(8px); animation: rise .28s var(--ease) forwards;
+  }
+  @keyframes rise { to { transform: none; } }
+  .modal-head {
+    padding: 20px 22px 14px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .modal-head .lockico {
+    width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+    background: #efe9df; color: var(--ink-soft); display: grid; place-items: center;
+  }
+  .modal-head .lockico svg { width: 17px; height: 17px; }
+  .modal-head h3 { font-family: 'Fraunces', serif; font-size: 17px; margin: 0; font-weight: 600; }
+  .modal-head p { margin: 3px 0 0; font-size: 12.5px; color: var(--ink-faint); }
+  .modal-head .x {
+    margin-left: auto; cursor: pointer; color: var(--ink-faint);
+    background: none; border: none; font-size: 22px; line-height: 1; padding: 0 2px;
+  }
+  .modal-head .x:hover { color: var(--ink); }
+  .modal-body { padding: 18px 22px 22px; }
+  .teacher-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; letter-spacing: .04em;
+    color: #9b7b3e; background: #f6ecd6; border: 1px solid #ecdcb8;
+    padding: 3px 9px; border-radius: 20px; margin-bottom: 14px;
+  }
+  .pair-add { display: flex; gap: 8px; margin-bottom: 14px; }
+  .pair-add select { flex: 1; }
+  .pair-add .btn { padding: 0 16px; }
+  .pairs { display: flex; flex-direction: column; gap: 8px; }
+  .pair {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--paper-2); border: 1px solid var(--line-2);
+    border-radius: var(--r-sm); padding: 9px 12px; font-size: 13.5px;
+  }
+  .pair .vs { color: var(--ink-faint); font-size: 12px; }
+  .pair .rm {
+    margin-left: auto; cursor: pointer; color: var(--ink-faint);
+    background: none; border: none; font-size: 17px; line-height: 1;
+  }
+  .pair .rm:hover { color: #b5503f; }
+  .pairs-empty { font-size: 13px; color: var(--ink-faint); text-align: center; padding: 14px; }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: #fdf9f1; padding: 12px 20px; border-radius: 12px;
+    font-size: 13.5px; font-weight: 500; box-shadow: var(--shadow-lg);
+    opacity: 0; pointer-events: none; transition: all .3s var(--ease); z-index: 80;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast svg { width: 16px; height: 16px; color: var(--sage); }
+
+  .footnote { text-align: center; font-size: 12px; color: var(--ink-faint); margin-top: 36px; }
+
+  /* ---------- Print ---------- */
+  @media print {
+    body { background: #fff; }
+    .wrap { max-width: 100%; padding: 0; }
+    header.app, .card:not(.print-keep), .gear-btn, .results-actions, .stage-card, .footnote { display: none !important; }
+    #results { margin: 0; }
+    .print-title { display: block !important; font-family: 'Fraunces', serif; font-size: 24px; margin-bottom: 4px; }
+    .print-sub { display: block !important; font-size: 13px; color: #555; margin-bottom: 18px; }
+    .groups { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .group { box-shadow: none; border: 1px solid #ccc; opacity: 1 !important; transform: none !important; break-inside: avoid; }
+    .member .av { border: 1px solid #999; }
+  }
+  .print-title, .print-sub { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="app">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><circle cx="9" cy="17" r="2.4"/>
+          <path d="M8 11v3M11.5 8.5l3 .4M10.5 14.6l2 1.2"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Group Maker</h1>
+        <p>Fair, fast student groups — ready to project.</p>
+      </div>
+    </div>
+    <button class="gear-btn" id="gearBtn" title="Teacher settings" aria-label="Teacher settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- NAMES -->
+  <section class="card">
+    <div class="card-head">
+      <span class="step">STEP 1</span>
+      <h2>Who's in the room?</h2>
+    </div>
+    <label class="fld" for="names">One student per line</label>
+    <textarea id="names" placeholder="Avery Thompson&#10;Jordan Lee&#10;Maya Patel&#10;…"></textarea>
+    <div class="ta-foot">
+      <span class="count"><b id="countNum">0</b> <span id="countWord">students</span></span>
+      <a class="linkish" id="loadSample">Load sample roster</a>
+    </div>
+  </section>
+
+  <!-- SIZING -->
+  <section class="card">
+    <div class="card-head">
+      <span class="step">STEP 2</span>
+      <h2>How should they split?</h2>
+    </div>
+    <div class="seg" id="modeSeg" style="margin-bottom:16px;">
+      <button data-mode="groups" class="on">Number of groups</button>
+      <button data-mode="size">Students per group</button>
+    </div>
+    <div class="size-row">
+      <div class="num-wrap">
+        <label class="fld" id="numLabel">Groups</label>
+        <div class="num-stepper">
+          <button class="stepbtn minus" id="dec" aria-label="decrease">−</button>
+          <input type="number" id="sizeVal" value="5" min="1" max="40" />
+          <button class="stepbtn plus" id="inc" aria-label="increase">+</button>
+        </div>
+      </div>
+      <div class="hint" id="splitHint"><span class="arrow">→</span> Add students to see the split.</div>
+    </div>
+  </section>
+
+  <!-- TITLE + OPTIONS + RANDOMIZE -->
+  <section class="card stage-card">
+    <div class="card-head">
+      <span class="step">STEP 3</span>
+      <h2>Name it &amp; shuffle</h2>
+    </div>
+    <label class="fld" for="title">Session title</label>
+    <input type="text" id="title" placeholder="e.g. Period 3 — Lab Teams" style="margin-bottom:18px;" />
+
+    <div class="opts">
+      <label class="switch" title="Tries to avoid pairing students who were grouped together in a saved round.">
+        <input type="checkbox" id="avoidRepeat" />
+        <span class="track"></span>
+        <span class="lbl"><b>Avoid repeat groupings</b><br><span class="sub">Mixes students from previous saved rounds</span></span>
+      </label>
+    </div>
+
+    <button class="btn btn-primary" id="rollBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/>
+      </svg>
+      Randomize groups
+    </button>
+
+    <div class="stage" id="stage" style="margin-top:18px;">
+      <div class="hello" id="stageHello">
+        <div class="big">Ready when you are.</div>
+        <div>Hit <b>Randomize</b> and watch the names settle into groups.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results"></section>
+
+  <!-- SAVE / LOAD -->
+  <section class="card">
+    <div class="card-head">
+      <span class="step">STEP 4</span>
+      <h2>Save &amp; reload</h2>
+    </div>
+    <div class="sl-row">
+      <div class="grow">
+        <label class="fld">Reload a saved session</label>
+        <select id="savedList"><option value="">— Saved sessions —</option></select>
+      </div>
+      <div style="display:flex; gap:9px; align-items:flex-end; flex-wrap:wrap;">
+        <button class="btn btn-ghost" id="saveBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+          Save
+        </button>
+        <button class="btn btn-ghost" id="printBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          Print
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="footnote">Group Maker · soft-cards preview · all data stays in your browser</div>
+</div>
+
+<!-- TEACHER MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="lockico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div>
+        <h3>Teacher settings</h3>
+        <p>Private — not shown on the projected screen.</p>
+      </div>
+      <button class="x" id="modalX" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <span class="teacher-tag">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+        HIDDEN FROM STUDENTS
+      </span>
+      <p style="margin:0 0 14px; font-size:13px; color:var(--ink-soft);">Keep certain students apart. These pairs will never be placed in the same group.</p>
+      <div class="pair-add">
+        <select id="paStudentA"><option value="">Student…</option></select>
+        <select id="paStudentB"><option value="">Student…</option></select>
+        <button class="btn btn-primary" id="addPair" style="width:auto;">Add</button>
+      </div>
+      <div class="pairs" id="pairsList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+  <span id="toastMsg">Saved</span>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const $ = s => document.querySelector(s);
+  const LS_SESSIONS = 'gm_soft_sessions_v1';
+  const LS_PAIRS = 'gm_soft_pairs_v1';
+  const LS_STATE = 'gm_soft_state_v1';
+
+  const SAMPLE = ["Avery Thompson","Jordan Lee","Maya Patel","Liam O'Connor","Sofia Ramirez","Noah Kim","Olivia Bennett","Ethan Nguyen","Isabella Rossi","Mason Clarke","Amara Okafor","Lucas Müller","Chloe Andersson","Diego Santos","Hannah Goldberg","Ravi Sharma","Emma Walsh","Caleb Foster","Zara Hussain","Owen Murphy","Grace Lin","Tobias Vega","Naomi Cohen","Felix Dubois"];
+
+  let mode = 'groups';   // 'groups' | 'size'
+  let lastResult = null; // array of arrays
+  let keepApart = [];    // [[a,b],...]
+
+  // ---------- helpers ----------
+  const names = $('#names'), countNum = $('#countNum'), countWord = $('#countWord');
+  const sizeVal = $('#sizeVal'), numLabel = $('#numLabel'), splitHint = $('#splitHint');
+  const titleEl = $('#title'), stage = $('#stage'), stageHello = $('#stageHello');
+  const results = $('#results'), savedList = $('#savedList');
+  const toast = $('#toast'), toastMsg = $('#toastMsg');
+
+  function getNames(){
+    return names.value.split('\n').map(s=>s.trim()).filter(Boolean);
+  }
+  function showToast(msg){
+    toastMsg.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=>toast.classList.remove('show'), 2200);
+  }
+  function initials(name){
+    const p = name.split(/\s+/);
+    return ((p[0]?.[0]||'') + (p[1]?.[0]||'')).toUpperCase() || name[0]?.toUpperCase() || '?';
+  }
+
+  // ---------- split computation ----------
+  function computeSplit(n){
+    if(n <= 0) return {groups: 0, sizes: []};
+    let g;
+    if(mode === 'groups') g = Math.max(1, Math.min(n, parseInt(sizeVal.value)||1));
+    else { const per = Math.max(1, parseInt(sizeVal.value)||1); g = Math.max(1, Math.ceil(n/per)); }
+    const base = Math.floor(n/g), rem = n % g;
+    const sizes = [];
+    for(let i=0;i<g;i++) sizes.push(base + (i < rem ? 1 : 0));
+    return {groups: g, sizes};
+  }
+
+  function updateCount(){
+    const n = getNames().length;
+    countNum.textContent = n;
+    countWord.textContent = n === 1 ? 'student' : 'students';
+    updateHint();
+    populatePairSelects();
+  }
+
+  function updateHint(){
+    const n = getNames().length;
+    if(n === 0){ splitHint.innerHTML = '<span class="arrow">→</span> Add students to see the split.'; return; }
+    const {groups, sizes} = computeSplit(n);
+    // summarize sizes like "6 groups of 4, 1 group of 3"
+    const counts = {};
+    sizes.forEach(s => counts[s] = (counts[s]||0)+1);
+    const parts = Object.keys(counts).sort((a,b)=>b-a).map(sz=>{
+      const c = counts[sz];
+      return `${c} group${c>1?'s':''} of ${sz}`;
+    });
+    splitHint.innerHTML = `<span class="arrow">→</span> ${parts.join(', ')} <span style="color:var(--ink-faint)">(${groups} total)</span>`;
+  }
+
+  // ---------- mode segmented ----------
+  $('#modeSeg').addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    mode = b.dataset.mode;
+    document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on', x===b));
+    numLabel.textContent = mode === 'groups' ? 'Groups' : 'Per group';
+    if(mode === 'groups' && (parseInt(sizeVal.value)||0) > 40) sizeVal.value = 5;
+    updateHint();
+  });
+
+  $('#inc').addEventListener('click', ()=>{ sizeVal.value = Math.min(40, (parseInt(sizeVal.value)||0)+1); updateHint(); });
+  $('#dec').addEventListener('click', ()=>{ sizeVal.value = Math.max(1, (parseInt(sizeVal.value)||1)-1); updateHint(); });
+  sizeVal.addEventListener('input', updateHint);
+  names.addEventListener('input', ()=>{ updateCount(); saveState(); });
+  titleEl.addEventListener('input', saveState);
+
+  $('#loadSample').addEventListener('click', ()=>{
+    names.value = SAMPLE.join('\n');
+    if(!titleEl.value) titleEl.value = 'Period 3 — Lab Teams';
+    updateCount(); saveState();
+    showToast('Loaded 24 sample students');
+  });
+
+  // ---------- grouping algorithm ----------
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  }
+  function conflict(name, group){
+    return group.some(m => keepApart.some(p =>
+      (p[0]===name && p[1]===m) || (p[1]===name && p[0]===m)));
+  }
+  function makeGroups(){
+    const roster = getNames();
+    if(roster.length === 0) return null;
+    const {sizes} = computeSplit(roster.length);
+    // best-of attempts to honor keep-apart constraints
+    let best = null, bestBad = Infinity;
+    for(let attempt=0; attempt<60; attempt++){
+      const pool = shuffle(roster);
+      const groups = sizes.map(()=>[]);
+      let bad = 0;
+      pool.forEach(name=>{
+        // candidate groups with open space, sorted: no-conflict + emptiest first
+        let order = groups.map((g,i)=>({i, g})).filter(o=>o.g.length < sizes[o.i]);
+        order.sort((a,b)=>{
+          const ca = conflict(name,a.g)?1:0, cb = conflict(name,b.g)?1:0;
+          if(ca!==cb) return ca-cb;
+          return a.g.length - b.g.length;
+        });
+        const pick = order[0];
+        if(conflict(name, pick.g)) bad++;
+        pick.g.push(name);
+      });
+      if(bad < bestBad){ bestBad = bad; best = groups; if(bad===0) break; }
+    }
+    return best;
+  }
+
+  // ---------- the SHUFFLE → SETTLE animation ----------
+  const tints = 6;
+  let animating = false;
+
+  function runAnimation(groups, onDone){
+    animating = true;
+    stageHello.style.display = 'none';
+    stage.querySelectorAll('.chip').forEach(c=>c.remove());
+
+    const rect = stage.getBoundingClientRect();
+    const W = rect.width, H = rect.height;
+    const cx = W/2, cy = H/2;
+
+    // flatten with group index
+    const flat = [];
+    groups.forEach((g,gi)=> g.forEach(name=> flat.push({name, gi})));
+
+    // create chips at center
+    const chips = flat.map((item, idx)=>{
+      const el = document.createElement('div');
+      el.className = 'chip tinted-' + (item.gi % tints);
+      el.textContent = item.name;
+      stage.appendChild(el);
+      const w = el.offsetWidth, h = el.offsetHeight;
+      el.dataset.w = w; el.dataset.h = h;
+      // start stacked near center, invisible
+      el.style.left = (cx - w/2) + 'px';
+      el.style.top = (cy - h/2) + 'px';
+      el.style.transform = 'translate(0,0) scale(.3)';
+      el.style.opacity = '0';
+      return {el, w, h, item, idx};
+    });
+
+    // PHASE 1: appear + jumble in center cloud
+    const jumble = () => {
+      chips.forEach(c=>{
+        const ang = Math.random()*Math.PI*2;
+        const rad = 18 + Math.random()*Math.min(W,H)*0.30;
+        const dx = Math.cos(ang)*rad, dy = Math.sin(ang)*rad;
+        const rot = (Math.random()*30-15);
+        c.el.style.transition = 'transform .42s cubic-bezier(.4,0,.3,1), opacity .3s ease';
+        c.el.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg) scale(${.8+Math.random()*.35})`;
+        c.el.style.opacity = '1';
+      });
+    };
+    jumble();
+    // two more rapid re-scrambles for a lively "mixing" feel
+    setTimeout(jumble, 360);
+    setTimeout(jumble, 700);
+
+    // PHASE 2: compute target slot positions in a tidy grid, then fly out by cluster
+    setTimeout(()=>{
+      const targets = computeTargets(groups, W, H);
+      // settle one cluster (group) at a time, rapidly
+      const perGroupDelay = 130;
+      groups.forEach((g, gi)=>{
+        const groupChips = chips.filter(c=>c.item.gi === gi);
+        setTimeout(()=>{
+          groupChips.forEach((c, mi)=>{
+            const t = targets[gi][mi];
+            c.el.style.transition = 'transform .55s '+'cubic-bezier(.22,1,.36,1)'+', opacity .3s ease';
+            c.el.style.left = '0px'; c.el.style.top = '0px';
+            c.el.style.transform = `translate(${t.x - c.w/2}px, ${t.y - c.h/2}px) rotate(0deg) scale(1)`;
+          });
+        }, gi*perGroupDelay);
+      });
+
+      const total = groups.length*perGroupDelay + 620;
+      setTimeout(()=>{
+        animating = false;
+        onDone();
+      }, total);
+    }, 980);
+  }
+
+  // tidy target positions: arrange groups in columns/rows within stage
+  function computeTargets(groups, W, H){
+    const G = groups.length;
+    const cols = Math.min(G, Math.max(1, Math.round(Math.sqrt(G*W/H))));
+    const rows = Math.ceil(G/cols);
+    const colW = W/cols, rowH = H/rows;
+    const targets = [];
+    groups.forEach((g, gi)=>{
+      const cI = gi % cols, rI = Math.floor(gi/cols);
+      const gx = colW*cI + colW/2;
+      const gyTop = rowH*rI + 18;
+      const slot = [];
+      g.forEach((m, mi)=>{
+        const lineH = Math.min(26, (rowH-26)/Math.max(g.length,1));
+        slot.push({ x: gx, y: gyTop + mi*lineH + 8 });
+      });
+      targets.push(slot);
+    });
+    return targets;
+  }
+
+  // ---------- render results ----------
+  function renderResults(groups, animateIn){
+    lastResult = groups;
+    const title = titleEl.value.trim() || 'Untitled session';
+    const total = groups.reduce((s,g)=>s+g.length,0);
+    const repeat = $('#avoidRepeat').checked;
+
+    let html = `
+      <div class="print-title">${escapeHtml(title)}</div>
+      <div class="print-sub">${groups.length} groups · ${total} students</div>
+      <div class="card print-keep" style="padding:22px 24px;">
+        <div class="results-head">
+          <div>
+            <h2>${escapeHtml(title)}</h2>
+            <div class="meta">${groups.length} groups · ${total} students${repeat?' · avoiding repeats':''}${keepApart.length?' · '+keepApart.length+' keep-apart rule'+(keepApart.length>1?'s':''):''}</div>
+          </div>
+          <div class="results-actions">
+            <button class="btn btn-ghost" id="rerollBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15"/></svg>
+              Randomize again
+            </button>
+            <button class="btn btn-ghost" id="printBtn2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+              Print
+            </button>
+          </div>
+        </div>
+        <div class="groups">`;
+
+    groups.forEach((g, gi)=>{
+      html += `<div class="group acc-${gi%tints}" style="animation-delay:${animateIn?gi*70:0}ms">
+        <div class="g-head"><span class="g-dot"></span><span class="g-title">Group ${gi+1}</span><span class="g-num">${g.length}</span></div>`;
+      g.forEach(m=>{
+        html += `<div class="member"><span class="av">${escapeHtml(initials(m))}</span>${escapeHtml(m)}</div>`;
+      });
+      html += `</div>`;
+    });
+    html += `</div></div>`;
+    results.innerHTML = html;
+
+    if(animateIn){
+      requestAnimationFrame(()=> results.querySelectorAll('.group').forEach(el=>el.classList.add('in')));
+    } else {
+      results.querySelectorAll('.group').forEach(el=>el.classList.add('in'));
+    }
+
+    $('#rerollBtn').addEventListener('click', doRoll);
+    $('#printBtn2').addEventListener('click', ()=>window.print());
+    saveState();
+  }
+
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // ---------- roll ----------
+  const rollBtn = $('#rollBtn');
+  function doRoll(){
+    if(animating) return;
+    const roster = getNames();
+    if(roster.length < 2){ showToast('Add at least 2 students first'); return; }
+    const groups = makeGroups();
+    if(!groups) return;
+    rollBtn.disabled = true;
+    // collapse old results during the show
+    results.innerHTML = '';
+    stage.scrollIntoView({behavior:'smooth', block:'center'});
+    runAnimation(groups, ()=>{
+      rollBtn.disabled = false;
+      renderResults(groups, true);
+      // tuck the stage back to idle
+      stage.querySelectorAll('.chip').forEach(c=>{
+        c.style.transition='opacity .3s'; c.style.opacity='0';
+        setTimeout(()=>c.remove(), 320);
+      });
+      setTimeout(()=>{ stageHello.style.display=''; }, 360);
+    });
+  }
+  rollBtn.addEventListener('click', doRoll);
+
+  // ---------- save / load ----------
+  function loadSessions(){ try { return JSON.parse(localStorage.getItem(LS_SESSIONS)) || []; } catch(e){ return []; } }
+  function storeSessions(s){ localStorage.setItem(LS_SESSIONS, JSON.stringify(s)); }
+
+  function refreshSavedList(){
+    const sessions = loadSessions();
+    savedList.innerHTML = '<option value="">— Saved sessions —</option>' +
+      sessions.map((s,i)=>`<option value="${i}">${escapeHtml(s.title)} · ${s.names.length} · ${s.when}</option>`).join('');
+  }
+
+  $('#saveBtn').addEventListener('click', ()=>{
+    const roster = getNames();
+    if(roster.length === 0){ showToast('Nothing to save yet'); return; }
+    const sessions = loadSessions();
+    const when = new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
+    sessions.unshift({
+      title: titleEl.value.trim() || 'Untitled session',
+      names: roster,
+      mode, size: parseInt(sizeVal.value)||1,
+      avoidRepeat: $('#avoidRepeat').checked,
+      result: lastResult,
+      when
+    });
+    storeSessions(sessions.slice(0,30));
+    refreshSavedList();
+    showToast('Session saved');
+  });
+
+  savedList.addEventListener('change', ()=>{
+    const i = savedList.value;
+    if(i === '') return;
+    const s = loadSessions()[+i];
+    if(!s) return;
+    names.value = s.names.join('\n');
+    titleEl.value = s.title;
+    mode = s.mode || 'groups';
+    document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on', x.dataset.mode===mode));
+    numLabel.textContent = mode==='groups'?'Groups':'Per group';
+    sizeVal.value = s.size || 5;
+    $('#avoidRepeat').checked = !!s.avoidRepeat;
+    updateCount();
+    if(s.result){ renderResults(s.result, true); }
+    else { results.innerHTML=''; }
+    showToast('Loaded "'+s.title+'"');
+  });
+
+  $('#printBtn').addEventListener('click', ()=>{
+    if(!lastResult){ showToast('Randomize first to print groups'); return; }
+    window.print();
+  });
+
+  // ---------- teacher keep-apart ----------
+  const overlay = $('#overlay');
+  $('#gearBtn').addEventListener('click', ()=>{ populatePairSelects(); renderPairs(); overlay.classList.add('show'); });
+  $('#modalX').addEventListener('click', ()=>overlay.classList.remove('show'));
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.classList.remove('show'); });
+
+  function loadPairs(){ try{ return JSON.parse(localStorage.getItem(LS_PAIRS))||[]; }catch(e){ return []; } }
+  function storePairs(){ localStorage.setItem(LS_PAIRS, JSON.stringify(keepApart)); }
+
+  function populatePairSelects(){
+    const roster = getNames();
+    const opts = '<option value="">Student…</option>' + roster.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+    const a = $('#paStudentA'), b = $('#paStudentB');
+    if(a) a.innerHTML = opts;
+    if(b) b.innerHTML = opts;
+  }
+
+  function renderPairs(){
+    const list = $('#pairsList');
+    if(keepApart.length === 0){ list.innerHTML = '<div class="pairs-empty">No keep-apart rules yet.</div>'; return; }
+    list.innerHTML = keepApart.map((p,i)=>`
+      <div class="pair"><span>${escapeHtml(p[0])}</span><span class="vs">⊘ keep apart from</span><span>${escapeHtml(p[1])}</span>
+      <button class="rm" data-i="${i}" aria-label="Remove">&times;</button></div>`).join('');
+    list.querySelectorAll('.rm').forEach(btn=>btn.addEventListener('click', ()=>{
+      keepApart.splice(+btn.dataset.i,1); storePairs(); renderPairs();
+    }));
+  }
+
+  $('#addPair').addEventListener('click', ()=>{
+    const a = $('#paStudentA').value, b = $('#paStudentB').value;
+    if(!a || !b || a===b){ showToast('Pick two different students'); return; }
+    if(keepApart.some(p=>(p[0]===a&&p[1]===b)||(p[0]===b&&p[1]===a))){ showToast('That pair is already added'); return; }
+    keepApart.push([a,b]); storePairs(); renderPairs();
+    $('#paStudentA').value=''; $('#paStudentB').value='';
+  });
+
+  // ---------- persist working state ----------
+  function saveState(){
+    localStorage.setItem(LS_STATE, JSON.stringify({
+      names: names.value, title: titleEl.value, mode, size: sizeVal.value,
+      avoidRepeat: $('#avoidRepeat').checked, result: lastResult
+    }));
+  }
+  function loadState(){
+    try{
+      const s = JSON.parse(localStorage.getItem(LS_STATE));
+      if(!s) return false;
+      names.value = s.names||''; titleEl.value = s.title||'';
+      mode = s.mode||'groups';
+      document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on', x.dataset.mode===mode));
+      numLabel.textContent = mode==='groups'?'Groups':'Per group';
+      sizeVal.value = s.size||5;
+      $('#avoidRepeat').checked = !!s.avoidRepeat;
+      if(s.result){ lastResult = s.result; }
+      return true;
+    }catch(e){ return false; }
+  }
+
+  // ---------- seed ----------
+  function seed(){
+    if(!localStorage.getItem(LS_SESSIONS)){
+      const r1 = [["Maya Patel","Noah Kim","Grace Lin","Diego Santos"],["Avery Thompson","Sofia Ramirez","Owen Murphy","Zara Hussain"],["Jordan Lee","Ethan Nguyen","Emma Walsh","Ravi Sharma"]];
+      storeSessions([
+        { title:"Period 2 — Reading Circles", names:["Maya Patel","Noah Kim","Grace Lin","Diego Santos","Avery Thompson","Sofia Ramirez","Owen Murphy","Zara Hussain","Jordan Lee","Ethan Nguyen","Emma Walsh","Ravi Sharma"], mode:"groups", size:3, avoidRepeat:false, result:r1, when:"May 28" },
+        { title:"Period 5 — Lab Partners", names:["Liam O'Connor","Isabella Rossi","Mason Clarke","Amara Okafor","Lucas Müller","Chloe Andersson","Hannah Goldberg","Caleb Foster"], mode:"size", size:2, avoidRepeat:true, result:[["Liam O'Connor","Amara Okafor"],["Isabella Rossi","Lucas Müller"],["Mason Clarke","Hannah Goldberg"],["Chloe Andersson","Caleb Foster"]], when:"May 30" },
+        { title:"Debate Teams — Final", names:["Naomi Cohen","Felix Dubois","Tobias Vega","Olivia Bennett","Maya Patel","Noah Kim","Ravi Sharma","Emma Walsh"], mode:"groups", size:2, avoidRepeat:false, result:[["Naomi Cohen","Olivia Bennett","Ravi Sharma","Felix Dubois"],["Tobias Vega","Maya Patel","Noah Kim","Emma Walsh"]], when:"Jun 1" }
+      ]);
+    }
+    if(!localStorage.getItem(LS_PAIRS)){
+      localStorage.setItem(LS_PAIRS, JSON.stringify([["Noah Kim","Ethan Nguyen"]]));
+    }
+  }
+
+  // ---------- init ----------
+  seed();
+  keepApart = loadPairs();
+  const restored = loadState();
+  if(!restored){
+    names.value = SAMPLE.join('\n');
+    titleEl.value = 'Period 3 — Lab Teams';
+  }
+  updateCount();
+  refreshSavedList();
+  if(lastResult) renderResults(lastResult, false);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# Cloudflare Pages + Functions config for the Group Randomizer.
+# The Pages project name (also the *.pages.dev subdomain).
+name = "group-randomizer"
+compatibility_date = "2025-01-15"
+
+# Static assets live in /public; Pages Functions live in /functions (auto-detected).
+pages_build_output_dir = "public"
+
+# --- D1 database binding ---------------------------------------------------
+# After you run `npm run db:create`, paste the returned database_id below.
+# (You can also set this binding in the Cloudflare dashboard:
+#  Pages project → Settings → Functions → D1 database bindings → variable name DB.)
+[[d1_databases]]
+binding = "DB"
+database_name = "group-randomizer-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# --- Secrets (do NOT put real values here) ---------------------------------
+# Set these as encrypted secrets / environment variables, NOT in this file:
+#   GOOGLE_CLIENT_ID      (from Google Cloud OAuth client)
+#   GOOGLE_CLIENT_SECRET  (from Google Cloud OAuth client)
+#   SESSION_SECRET        (a long random string; sign-in session signing key)
+# Locally: put them in .dev.vars (git-ignored). In production: Pages dashboard →
+# Settings → Environment variables (mark as encrypted / "Secret").

@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Group Generator — Stage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0b0f18;
+    --bg-2: #0f1525;
+    --panel: #141b2e;
+    --panel-2: #1a2238;
+    --ink: #eef2fb;
+    --ink-dim: #9aa6c4;
+    --ink-faint: #6c789a;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.16);
+    --accent: #6ea8fe;
+    --accent-2: #b8d0ff;
+    --accent-glow: rgba(110, 168, 254, 0.45);
+    --gold: #e7c477;
+    --danger: #ff7b86;
+    --ok: #7be0a3;
+    --radius: 18px;
+    --shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+    --stage-grad: radial-gradient(1200px 700px at 50% -10%, #1a2440, transparent);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: "Inter", system-ui, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(1400px 800px at 50% -20%, #18223a 0%, transparent 60%),
+      radial-gradient(1000px 600px at 90% 110%, rgba(110,168,254,0.07), transparent 60%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .display { font-family: "Fraunces", Georgia, serif; }
+
+  /* ============ TOP BAR / DRAWER ============ */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 26px;
+    background: linear-gradient(180deg, rgba(11,15,24,0.92), rgba(11,15,24,0.72));
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+    transition: transform .5s cubic-bezier(.2,.8,.2,1), opacity .4s ease;
+  }
+  body.reveal-mode .topbar { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-weight: 700; letter-spacing: .2px;
+  }
+  .brand .mark {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: radial-gradient(circle at 30% 25%, var(--accent-2), var(--accent) 70%);
+    box-shadow: 0 0 22px var(--accent-glow);
+    display: grid; place-items: center;
+    color: #0b0f18; font-weight: 900; font-family: "Fraunces", serif;
+  }
+  .brand small { display: block; color: var(--ink-faint); font-weight: 500; font-size: 11px; letter-spacing: .5px; text-transform: uppercase; }
+
+  .topbar .spacer { flex: 1; }
+
+  .pill-btn {
+    appearance: none; border: 1px solid var(--line-strong);
+    background: var(--panel); color: var(--ink);
+    font: inherit; font-weight: 600; font-size: 13.5px;
+    padding: 9px 15px; border-radius: 999px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: background .15s, border-color .15s, transform .08s;
+  }
+  .pill-btn:hover { background: var(--panel-2); border-color: var(--accent); }
+  .pill-btn:active { transform: translateY(1px); }
+  .pill-btn .ico { width: 16px; height: 16px; display: inline-block; opacity: .85; }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: grid; place-items: center; cursor: pointer;
+    border: 1px solid var(--line-strong); background: var(--panel); color: var(--ink-dim);
+    transition: .15s;
+  }
+  .icon-btn:hover { color: var(--ink); border-color: var(--accent); background: var(--panel-2); }
+
+  /* drawer toggle */
+  .drawer-toggle.active { background: var(--accent); border-color: var(--accent); color: #0b0f18; }
+
+  /* ============ LAYOUT ============ */
+  .shell {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 67px);
+    transition: grid-template-columns .5s cubic-bezier(.2,.8,.2,1);
+  }
+  body.drawer-closed .shell { grid-template-columns: 0px 1fr; }
+  body.reveal-mode .shell { grid-template-columns: 0px 1fr; }
+
+  /* ============ CONTROL DRAWER ============ */
+  .drawer {
+    border-right: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(20,27,46,0.7), rgba(15,21,37,0.5));
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: calc(100vh - 67px);
+    position: sticky; top: 67px;
+  }
+  body.drawer-closed .drawer, body.reveal-mode .drawer { opacity: 0; pointer-events: none; }
+  .drawer-inner { padding: 22px 22px 60px; width: 380px; }
+
+  .field { margin-bottom: 22px; }
+  .field > label.lbl {
+    display: flex; align-items: baseline; justify-content: space-between;
+    font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 9px;
+  }
+  .field .hint-link {
+    font-size: 11.5px; font-weight: 600; color: var(--accent);
+    text-transform: none; letter-spacing: 0; cursor: pointer; text-decoration: none;
+  }
+  .field .hint-link:hover { text-decoration: underline; }
+
+  textarea, input[type="text"], input[type="number"], select {
+    width: 100%; font: inherit; color: var(--ink);
+    background: var(--bg-2); border: 1px solid var(--line-strong);
+    border-radius: 12px; padding: 12px 13px; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  textarea:focus, input:focus, select:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(110,168,254,0.18);
+  }
+  textarea {
+    min-height: 168px; resize: vertical; line-height: 1.55;
+    font-size: 14px;
+  }
+  .count-row { display: flex; justify-content: space-between; align-items: center; margin-top: 7px; }
+  .count-chip {
+    font-size: 12.5px; color: var(--ink-dim); font-weight: 600;
+  }
+  .count-chip b { color: var(--accent-2); }
+
+  /* segmented */
+  .seg {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+    background: var(--bg-2); border: 1px solid var(--line-strong);
+    border-radius: 12px; padding: 4px;
+  }
+  .seg button {
+    appearance: none; border: 0; background: transparent; color: var(--ink-dim);
+    font: inherit; font-weight: 600; font-size: 13px; padding: 9px 8px;
+    border-radius: 9px; cursor: pointer; transition: .15s;
+  }
+  .seg button.active { background: var(--accent); color: #0b0f18; box-shadow: 0 4px 14px var(--accent-glow); }
+
+  .num-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .stepper { display: flex; align-items: center; border: 1px solid var(--line-strong); border-radius: 12px; overflow: hidden; background: var(--bg-2); }
+  .stepper button {
+    width: 42px; height: 44px; border: 0; background: transparent; color: var(--ink-dim);
+    font-size: 20px; cursor: pointer; transition: .12s;
+  }
+  .stepper button:hover { background: var(--panel-2); color: var(--ink); }
+  .stepper input { width: 64px; text-align: center; border: 0; border-left: 1px solid var(--line); border-right: 1px solid var(--line); border-radius: 0; background: transparent; font-weight: 700; font-size: 17px; }
+  .num-suffix { color: var(--ink-faint); font-size: 13px; font-weight: 600; }
+
+  .split-hint {
+    margin-top: 11px; font-size: 13px; color: var(--ink-dim);
+    background: rgba(110,168,254,0.08); border: 1px solid rgba(110,168,254,0.18);
+    border-radius: 10px; padding: 9px 11px; line-height: 1.45;
+  }
+  .split-hint .arrow { color: var(--accent); font-weight: 800; }
+
+  /* checkbox row */
+  .check-row {
+    display: flex; align-items: flex-start; gap: 11px;
+    padding: 12px; border: 1px solid var(--line-strong); border-radius: 12px;
+    background: var(--bg-2); cursor: pointer; user-select: none;
+  }
+  .check-row:hover { border-color: var(--line-strong); background: var(--panel-2); }
+  .switch {
+    position: relative; width: 40px; height: 23px; flex: 0 0 auto; margin-top: 1px;
+    background: #2a334d; border-radius: 999px; transition: .2s;
+  }
+  .switch::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 19px; height: 19px;
+    background: #cfd7ea; border-radius: 50%; transition: .2s;
+  }
+  .check-row input { display: none; }
+  .check-row input:checked + .switch { background: var(--accent); }
+  .check-row input:checked + .switch::after { transform: translateX(17px); background: #0b0f18; }
+  .check-row .ctext { font-size: 13.5px; font-weight: 600; }
+  .check-row .ctext small { display: block; font-weight: 500; color: var(--ink-faint); font-size: 11.5px; margin-top: 2px; }
+
+  .drawer-actions { display: flex; gap: 9px; margin-top: 8px; }
+  .ghost-btn {
+    flex: 1; appearance: none; border: 1px solid var(--line-strong); background: var(--panel);
+    color: var(--ink); font: inherit; font-weight: 600; font-size: 13px;
+    padding: 11px; border-radius: 12px; cursor: pointer; transition: .15s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  }
+  .ghost-btn:hover { border-color: var(--accent); background: var(--panel-2); }
+
+  .saved-list { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; }
+  .saved-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 11px; border: 1px solid var(--line); border-radius: 11px;
+    background: var(--bg-2); cursor: pointer; transition: .15s;
+  }
+  .saved-item:hover { border-color: var(--accent); background: var(--panel-2); }
+  .saved-item .si-main { flex: 1; min-width: 0; }
+  .saved-item .si-title { font-size: 13.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .saved-item .si-meta { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+  .saved-item .si-del { color: var(--ink-faint); font-size: 16px; opacity: 0; transition: .15s; }
+  .saved-item:hover .si-del { opacity: 1; }
+  .saved-item .si-del:hover { color: var(--danger); }
+
+  .divider { height: 1px; background: var(--line); margin: 22px 0; }
+
+  .teacher-row { display: flex; align-items: center; justify-content: space-between; }
+  .teacher-trigger {
+    display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+    font-size: 11.5px; color: var(--ink-faint); font-weight: 600;
+    padding: 6px 9px; border-radius: 8px; transition: .15s;
+  }
+  .teacher-trigger:hover { color: var(--ink-dim); background: rgba(255,255,255,0.04); }
+  .teacher-trigger .lock { width: 13px; height: 13px; }
+
+  /* ============ STAGE ============ */
+  .stage {
+    position: relative;
+    padding: 30px 40px 80px;
+    display: flex; flex-direction: column;
+    min-height: calc(100vh - 67px);
+  }
+
+  .stage-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 6px; }
+  .session-title-display {
+    font-family: "Fraunces", serif; font-weight: 600;
+    font-size: clamp(26px, 3.4vw, 46px); letter-spacing: -0.5px;
+    line-height: 1.05; margin: 0;
+  }
+  .session-sub { color: var(--ink-faint); font-size: 14px; font-weight: 500; margin-top: 6px; }
+  .stage-head .reveal-controls { display: flex; gap: 10px; flex: 0 0 auto; }
+
+  /* big primary randomize */
+  .randomize-wrap { display: flex; align-items: center; gap: 14px; margin: 20px 0 4px; flex-wrap: wrap; }
+  .btn-randomize {
+    appearance: none; border: 0; cursor: pointer; font: inherit;
+    font-weight: 700; font-size: 17px; letter-spacing: .3px;
+    color: #08111f; padding: 15px 30px; border-radius: 14px;
+    background: linear-gradient(180deg, var(--accent-2), var(--accent));
+    box-shadow: 0 14px 40px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,.5);
+    display: inline-flex; align-items: center; gap: 11px;
+    transition: transform .1s, box-shadow .2s, filter .15s;
+  }
+  .btn-randomize:hover { filter: brightness(1.06); box-shadow: 0 18px 52px var(--accent-glow); }
+  .btn-randomize:active { transform: translateY(2px) scale(.99); }
+  .btn-randomize .dice { font-size: 20px; }
+  .btn-randomize[disabled] { opacity: .5; cursor: not-allowed; filter: grayscale(.3); }
+
+  .inline-check {
+    display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+    font-size: 13.5px; color: var(--ink-dim); font-weight: 600; user-select: none;
+  }
+  .inline-check .switch { width: 36px; height: 21px; }
+  .inline-check input:checked + .switch::after { transform: translateX(15px); }
+  .inline-check .switch::after { width: 17px; height: 17px; }
+
+  /* shuffle arena */
+  .arena {
+    position: relative;
+    flex: 1;
+    margin-top: 22px;
+    min-height: 380px;
+  }
+
+  .scramble-layer {
+    position: absolute; inset: 0;
+    pointer-events: none; z-index: 30;
+  }
+  .flyer {
+    position: absolute;
+    font-family: "Fraunces", serif; font-weight: 600;
+    font-size: clamp(18px, 2vw, 30px);
+    color: var(--ink);
+    padding: 7px 16px; border-radius: 12px;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    white-space: nowrap;
+    will-change: transform, opacity;
+    transition: transform .42s cubic-bezier(.18,.7,.2,1), opacity .3s ease;
+    transform: translate(-50%, -50%);
+    left: 50%; top: 50%;
+  }
+  .flyer.glow { box-shadow: 0 0 26px var(--accent-glow), 0 10px 30px rgba(0,0,0,.5); border-color: var(--accent); }
+
+  /* results grid */
+  .results {
+    display: grid;
+    gap: 22px;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    align-content: start;
+  }
+  .empty-state {
+    flex: 1; display: grid; place-items: center; text-align: center;
+    color: var(--ink-faint);
+  }
+  .empty-state .es-inner { max-width: 420px; }
+  .empty-state .es-ico { font-size: 56px; margin-bottom: 14px; opacity: .7; }
+  .empty-state h3 { font-family: "Fraunces", serif; font-weight: 600; font-size: 26px; color: var(--ink-dim); margin: 0 0 8px; }
+  .empty-state p { font-size: 14.5px; line-height: 1.5; margin: 0; }
+
+  .group-card {
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    padding: 20px 22px 22px;
+    box-shadow: var(--shadow);
+    position: relative;
+    opacity: 0;
+    transform: translateY(26px) scale(.96);
+  }
+  .group-card.in { animation: cardIn .55s cubic-bezier(.16,.84,.28,1) forwards; }
+  @keyframes cardIn { to { opacity: 1; transform: none; } }
+  .group-card::before {
+    content: ""; position: absolute; inset: 0; border-radius: var(--radius);
+    padding: 1px; background: linear-gradient(160deg, var(--accent-glow), transparent 45%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; opacity: .8;
+  }
+  .gc-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .gc-badge {
+    width: 44px; height: 44px; flex: 0 0 auto; border-radius: 12px;
+    display: grid; place-items: center;
+    font-family: "Fraunces", serif; font-weight: 900; font-size: 21px;
+    color: #08111f;
+    background: linear-gradient(180deg, var(--accent-2), var(--accent));
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .gc-title { font-family: "Fraunces", serif; font-weight: 700; font-size: 23px; line-height: 1; }
+  .gc-count { font-size: 12px; color: var(--ink-faint); font-weight: 600; margin-top: 3px; }
+  .gc-members { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .gc-members li {
+    font-size: clamp(17px, 1.5vw, 21px); font-weight: 500;
+    padding: 7px 4px; border-bottom: 1px dashed var(--line);
+    display: flex; align-items: center; gap: 11px;
+    opacity: 0; transform: translateX(-8px);
+    animation: memberIn .4s ease forwards;
+  }
+  .gc-members li:last-child { border-bottom: 0; }
+  @keyframes memberIn { to { opacity: 1; transform: none; } }
+  .gc-members li .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+    flex: 0 0 auto; box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  /* ============ MODAL (teacher keep-apart) ============ */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(5,8,14,0.7); backdrop-filter: blur(6px);
+    display: none; align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    width: 100%; max-width: 540px; max-height: 86vh; overflow-y: auto;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--line-strong); border-radius: 20px;
+    box-shadow: var(--shadow); padding: 26px 28px;
+  }
+  .modal-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
+  .modal-head .mh-ico {
+    width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center;
+    background: rgba(231,196,119,0.12); border: 1px solid rgba(231,196,119,0.3); color: var(--gold);
+    flex: 0 0 auto;
+  }
+  .modal h2 { font-family: "Fraunces", serif; font-weight: 600; font-size: 22px; margin: 0; }
+  .modal .teacher-tag {
+    display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .8px;
+    text-transform: uppercase; color: var(--gold);
+    background: rgba(231,196,119,0.1); border: 1px solid rgba(231,196,119,0.28);
+    padding: 3px 8px; border-radius: 999px; margin-top: 6px;
+  }
+  .modal p.desc { color: var(--ink-dim); font-size: 13.5px; line-height: 1.5; margin: 14px 0 18px; }
+  .modal-close { margin-left: auto; cursor: pointer; color: var(--ink-faint); font-size: 22px; line-height: 1; background: none; border: 0; }
+  .modal-close:hover { color: var(--ink); }
+
+  .pair-builder { display: flex; gap: 8px; margin-bottom: 14px; }
+  .pair-builder select { flex: 1; }
+  .pair-builder .add-pair {
+    flex: 0 0 auto; padding: 0 16px; border-radius: 12px; border: 1px solid var(--accent);
+    background: rgba(110,168,254,0.14); color: var(--accent-2); font: inherit; font-weight: 700; cursor: pointer;
+  }
+  .pair-builder .add-pair:hover { background: rgba(110,168,254,0.24); }
+
+  .pair-list { display: flex; flex-direction: column; gap: 8px; }
+  .pair-chip {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 13px; border-radius: 12px;
+    background: var(--bg-2); border: 1px solid var(--line);
+  }
+  .pair-chip .names { flex: 1; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 9px; }
+  .pair-chip .vs { color: var(--danger); font-size: 12px; font-weight: 800; letter-spacing: .5px; }
+  .pair-chip .rm { cursor: pointer; color: var(--ink-faint); font-size: 17px; }
+  .pair-chip .rm:hover { color: var(--danger); }
+  .pair-empty { color: var(--ink-faint); font-size: 13px; text-align: center; padding: 18px; }
+
+  /* toast */
+  .toast {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--panel-2); border: 1px solid var(--line-strong);
+    color: var(--ink); padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 600;
+    box-shadow: var(--shadow); z-index: 300; opacity: 0; pointer-events: none;
+    transition: opacity .25s, transform .25s; display: flex; align-items: center; gap: 9px;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast .t-ico { color: var(--ok); }
+
+  /* exit reveal button (floats when topbar hidden) */
+  .exit-reveal {
+    position: fixed; top: 18px; right: 22px; z-index: 80;
+    opacity: 0; pointer-events: none; transition: opacity .4s ease .2s;
+  }
+  body.reveal-mode .exit-reveal { opacity: 1; pointer-events: auto; }
+
+  /* scrollbars */
+  .drawer::-webkit-scrollbar, .modal::-webkit-scrollbar { width: 9px; }
+  .drawer::-webkit-scrollbar-thumb, .modal::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 9px; }
+
+  /* ============ PRINT ============ */
+  @media print {
+    body { background: #fff !important; color: #000; }
+    .topbar, .drawer, .randomize-wrap, .stage-head .reveal-controls, .exit-reveal, .toast, .scramble-layer, .empty-state { display: none !important; }
+    .shell { display: block; grid-template-columns: 1fr; }
+    .stage { padding: 0; min-height: 0; }
+    .session-title-display { color: #000; font-size: 28px; }
+    .session-sub { color: #444; }
+    .results { display: block; }
+    .group-card {
+      opacity: 1 !important; transform: none !important; box-shadow: none;
+      border: 1.5px solid #222; background: #fff; color: #000;
+      page-break-inside: avoid; margin-bottom: 14px;
+    }
+    .group-card::before { display: none; }
+    .gc-badge { background: #222 !important; color: #fff !important; box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .gc-title, .gc-members li { color: #000; }
+    .gc-members li { animation: none; opacity: 1; transform: none; border-bottom: 1px solid #ccc; }
+    .gc-members li .dot { background: #222; box-shadow: none; }
+    .gc-count { color: #555; }
+  }
+
+  @media (max-width: 880px) {
+    .shell { grid-template-columns: 1fr; }
+    .drawer { position: relative; top: 0; max-height: none; }
+    body.drawer-closed .shell { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body class="stage-mode">
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="topbar">
+    <button class="icon-btn drawer-toggle active" id="drawerToggle" title="Toggle controls" aria-label="Toggle controls">
+      <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="brand">
+      <div class="mark">G</div>
+      <div>Group Generator<small>Projector Stage</small></div>
+    </div>
+    <div class="spacer"></div>
+    <button class="pill-btn" id="printBtn">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
+      Print
+    </button>
+    <button class="pill-btn" id="saveBtn">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+      Save session
+    </button>
+  </header>
+
+  <!-- floating exit reveal button -->
+  <button class="pill-btn exit-reveal" id="exitReveal">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    Exit stage
+  </button>
+
+  <div class="shell">
+
+    <!-- ===== CONTROL DRAWER ===== -->
+    <aside class="drawer" id="drawer">
+      <div class="drawer-inner">
+
+        <div class="field">
+          <label class="lbl" for="names">Student names <a class="hint-link" id="loadSample">Load sample</a></label>
+          <textarea id="names" placeholder="One student per line…&#10;Ava Thompson&#10;Liam Garcia&#10;…"></textarea>
+          <div class="count-row">
+            <span class="count-chip"><b id="studentCount">0</b> students</span>
+            <span class="count-chip" id="dupeNote" style="color:var(--gold);display:none;">duplicates ignored</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="lbl">Session title</label>
+          <input type="text" id="sessionTitle" placeholder="e.g. Period 3 — Lab Teams" />
+        </div>
+
+        <div class="field">
+          <label class="lbl">Group by</label>
+          <div class="seg" id="modeSeg">
+            <button data-mode="groups" class="active">Number of groups</button>
+            <button data-mode="size">Students per group</button>
+          </div>
+          <div class="num-row">
+            <div class="stepper">
+              <button id="numDown" aria-label="decrease">&minus;</button>
+              <input type="number" id="numInput" value="5" min="1" />
+              <button id="numUp" aria-label="increase">+</button>
+            </div>
+            <span class="num-suffix" id="numSuffix">groups</span>
+          </div>
+          <div class="split-hint" id="splitHint"><span class="arrow">→</span> add names to preview the split</div>
+        </div>
+
+        <div class="field">
+          <label class="check-row" for="avoidRepeat">
+            <input type="checkbox" id="avoidRepeat" />
+            <span class="switch"></span>
+            <span class="ctext">Avoid repeat groupings
+              <small>Try not to re-pair students from saved rounds</small>
+            </span>
+          </label>
+        </div>
+
+        <div class="divider"></div>
+
+        <label class="lbl" style="display:block;margin-bottom:9px;">Saved sessions</label>
+        <div class="saved-list" id="savedList"></div>
+
+        <div class="divider"></div>
+
+        <!-- low-profile teacher-only trigger -->
+        <div class="teacher-row">
+          <span style="font-size:11.5px;color:var(--ink-faint);font-weight:600;">Stage tools</span>
+          <span class="teacher-trigger" id="teacherTrigger" title="Teacher settings">
+            <svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Rules
+          </span>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- ===== STAGE ===== -->
+    <main class="stage">
+      <div class="stage-head">
+        <div>
+          <h1 class="session-title-display" id="stageTitle">Untitled grouping</h1>
+          <div class="session-sub" id="stageSub">Set up your class, then hit Randomize.</div>
+        </div>
+        <div class="reveal-controls" id="rerollWrap" style="display:none;">
+          <button class="pill-btn" id="rerollBtn">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+            Randomize again
+          </button>
+        </div>
+      </div>
+
+      <div class="randomize-wrap">
+        <button class="btn-randomize" id="randomizeBtn">
+          <span class="dice">🎲</span> Randomize
+        </button>
+        <label class="inline-check" for="avoidRepeatMirror">
+          <input type="checkbox" id="avoidRepeatMirror" />
+          <span class="switch"></span>
+          Avoid repeat groupings
+        </label>
+      </div>
+
+      <div class="arena" id="arena">
+        <div class="scramble-layer" id="scrambleLayer"></div>
+        <div class="empty-state" id="emptyState">
+          <div class="es-inner">
+            <div class="es-ico">🎬</div>
+            <h3>The stage is set</h3>
+            <p>Load your roster in the drawer, choose how to split the class, and press <b>Randomize</b> to reveal the groups.</p>
+          </div>
+        </div>
+        <div class="results" id="results" style="display:none;"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ===== TEACHER MODAL ===== -->
+  <div class="modal-overlay" id="teacherModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="mh-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div>
+          <h2>Keep-apart rules</h2>
+          <span class="teacher-tag">Teacher only · hidden from class</span>
+        </div>
+        <button class="modal-close" id="modalClose">&times;</button>
+      </div>
+      <p class="desc">Pairs listed here will <b>never</b> be placed in the same group. This panel is private — it does not appear on the projected stage, so students won't know it's in use.</p>
+
+      <div class="pair-builder">
+        <select id="pairA"><option value="">Student A…</option></select>
+        <select id="pairB"><option value="">Student B…</option></select>
+        <button class="add-pair" id="addPair">Add</button>
+      </div>
+
+      <div class="pair-list" id="pairList"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><span class="t-ico">✓</span><span id="toastMsg">Saved</span></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- state ----------
+  var STORE_KEY = "rgg_stage_sessions_v1";
+  var KEEPAPART_KEY = "rgg_stage_keepapart_v1";
+  var state = {
+    mode: "groups",        // "groups" | "size"
+    num: 5,
+    lastResult: null,      // array of groups (arrays of names)
+    keepApart: [],         // array of [a,b]
+  };
+
+  var SAMPLE = [
+    "Ava Thompson","Liam Garcia","Sophia Nguyen","Noah Patel","Isabella Rossi",
+    "Mason Cohen","Mia Okafor","Ethan Kim","Charlotte Reyes","Lucas Brandt",
+    "Amelia Foster","Elijah Mensah","Harper Lindqvist","James O'Brien","Evelyn Cruz",
+    "Benjamin Sato","Abigail Novak","Henry Adeyemi","Emily Vasquez","Alexander Pham",
+    "Scarlett Dubois","Daniel Haddad","Grace Iverson","Samuel Larsen"
+  ];
+
+  // ---------- elements ----------
+  var $ = function (id) { return document.getElementById(id); };
+  var namesEl = $("names"), titleEl = $("sessionTitle"),
+      countEl = $("studentCount"), dupeNote = $("dupeNote"),
+      numInput = $("numInput"), numSuffix = $("numSuffix"),
+      splitHint = $("splitHint"), savedList = $("savedList"),
+      results = $("results"), emptyState = $("emptyState"),
+      scrambleLayer = $("scrambleLayer"), arena = $("arena"),
+      stageTitle = $("stageTitle"), stageSub = $("stageSub"),
+      rerollWrap = $("rerollWrap"), randomizeBtn = $("randomizeBtn"),
+      avoidRepeat = $("avoidRepeat"), avoidRepeatMirror = $("avoidRepeatMirror");
+
+  // ---------- helpers ----------
+  function parseNames() {
+    var seen = {}, out = [], dupes = 0;
+    namesEl.value.split("\n").forEach(function (raw) {
+      var n = raw.trim().replace(/\s+/g, " ");
+      if (!n) return;
+      var k = n.toLowerCase();
+      if (seen[k]) { dupes++; return; }
+      seen[k] = 1; out.push(n);
+    });
+    out._dupes = dupes;
+    return out;
+  }
+
+  function computeSplit(count) {
+    // returns { groupCount, sizes: [..] }
+    if (count <= 0) return { groupCount: 0, sizes: [] };
+    var g;
+    if (state.mode === "groups") {
+      g = Math.min(state.num, count);
+    } else {
+      g = Math.max(1, Math.ceil(count / state.num));
+    }
+    g = Math.max(1, g);
+    var base = Math.floor(count / g), rem = count % g;
+    var sizes = [];
+    for (var i = 0; i < g; i++) sizes.push(base + (i < rem ? 1 : 0));
+    return { groupCount: g, sizes: sizes };
+  }
+
+  function describeSizes(sizes) {
+    // group identical sizes: "6 groups of 4, 1 group of 3"
+    var counts = {};
+    sizes.forEach(function (s) { counts[s] = (counts[s] || 0) + 1; });
+    var keys = Object.keys(counts).map(Number).sort(function (a, b) { return b - a; });
+    return keys.map(function (s) {
+      var n = counts[s];
+      return n + " group" + (n > 1 ? "s" : "") + " of " + s;
+    }).join(", ");
+  }
+
+  function updateCount() {
+    var names = parseNames();
+    countEl.textContent = names.length;
+    dupeNote.style.display = names._dupes ? "inline" : "none";
+    updateSplitHint(names.length);
+    refreshPairSelects(names);
+  }
+
+  function updateSplitHint(count) {
+    if (state.mode === "groups") numSuffix.textContent = "groups";
+    else numSuffix.textContent = "per group";
+    if (!count) {
+      splitHint.innerHTML = '<span class="arrow">&rarr;</span> add names to preview the split';
+      return;
+    }
+    var sp = computeSplit(count);
+    splitHint.innerHTML = '<span class="arrow">&rarr;</span> ' + describeSizes(sp.sizes) +
+      ' &middot; ' + sp.groupCount + ' total';
+  }
+
+  // ---------- grouping logic ----------
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function keyPair(a, b) { return a < b ? a + "||" + b : b + "||" + a; }
+
+  function buildForbidden() {
+    var set = {};
+    state.keepApart.forEach(function (p) { set[keyPair(p[0], p[1])] = 1; });
+    return set;
+  }
+
+  function buildRepeatPenalty() {
+    // pairs that appeared together in any saved session's lastResult
+    var pen = {};
+    if (!(avoidRepeat.checked || avoidRepeatMirror.checked)) return pen;
+    var sessions = loadSessions();
+    sessions.forEach(function (s) {
+      if (!s.result) return;
+      s.result.forEach(function (grp) {
+        for (var i = 0; i < grp.length; i++)
+          for (var j = i + 1; j < grp.length; j++)
+            pen[keyPair(grp[i], grp[j])] = (pen[keyPair(grp[i], grp[j])] || 0) + 1;
+      });
+    });
+    return pen;
+  }
+
+  function makeGroups(names) {
+    var sp = computeSplit(names.length);
+    var forbidden = buildForbidden();
+    var penalty = buildRepeatPenalty();
+    var best = null, bestScore = Infinity;
+    // try several randomized assignments, pick the one with fewest violations
+    for (var attempt = 0; attempt < 60; attempt++) {
+      var order = shuffle(names);
+      var groups = sp.sizes.map(function () { return []; });
+      var ok = true, score = 0;
+      // greedy place each name into first group that has room & no forbidden conflict
+      order.forEach(function (name) {
+        var placed = false;
+        // candidate groups with room, sorted by current penalty cost
+        var cand = [];
+        for (var g = 0; g < groups.length; g++) {
+          if (groups[g].length >= sp.sizes[g]) continue;
+          var forbiddenHere = groups[g].some(function (m) { return forbidden[keyPair(m, name)]; });
+          var pcost = 0;
+          groups[g].forEach(function (m) { pcost += (penalty[keyPair(m, name)] || 0); });
+          cand.push({ g: g, forbidden: forbiddenHere, pcost: pcost });
+        }
+        cand.sort(function (a, b) {
+          if (a.forbidden !== b.forbidden) return a.forbidden ? 1 : -1;
+          return a.pcost - b.pcost;
+        });
+        if (cand.length) {
+          var pick = cand[0];
+          if (pick.forbidden) { ok = false; score += 1000; }
+          score += pick.pcost;
+          groups[pick.g].push(name);
+          placed = true;
+        }
+        if (!placed) { ok = false; score += 1000; }
+      });
+      if (score < bestScore) { bestScore = score; best = groups; }
+      if (ok && score === 0) break;
+    }
+    return best;
+  }
+
+  // ---------- ANIMATION: shuffle then settle ----------
+  var animating = false;
+  function runReveal(names, groups) {
+    if (animating) return;
+    animating = true;
+    randomizeBtn.disabled = true;
+
+    document.body.classList.add("reveal-mode");
+    emptyState.style.display = "none";
+    results.style.display = "none";
+    results.innerHTML = "";
+    scrambleLayer.innerHTML = "";
+
+    var rect = arena.getBoundingClientRect();
+    var cx = rect.width / 2, cy = rect.height / 2;
+
+    // create flyers for every name
+    var flyers = names.map(function (name) {
+      var el = document.createElement("div");
+      el.className = "flyer";
+      el.textContent = name;
+      scrambleLayer.appendChild(el);
+      return el;
+    });
+
+    // PHASE 1: jumble — random orbiting positions, several quick re-positions
+    var jumbleTicks = 5;
+    function jumble(tick) {
+      flyers.forEach(function (el) {
+        var ang = Math.random() * Math.PI * 2;
+        var radius = 60 + Math.random() * Math.min(cx, cy) * 0.85;
+        var x = Math.cos(ang) * radius;
+        var y = Math.sin(ang) * radius * 0.72;
+        var rot = (Math.random() * 26 - 13);
+        var sc = 0.85 + Math.random() * 0.4;
+        el.style.transition = "transform " + (0.18 + Math.random() * 0.12) + "s cubic-bezier(.4,.1,.3,1), opacity .2s";
+        el.style.transform = "translate(-50%,-50%) translate(" + x + "px," + y + "px) rotate(" + rot + "deg) scale(" + sc + ")";
+        el.classList.toggle("glow", Math.random() < 0.3);
+      });
+      if (tick < jumbleTicks) {
+        setTimeout(function () { jumble(tick + 1); }, 170);
+      } else {
+        setTimeout(converge, 200);
+      }
+    }
+
+    // PHASE 2: converge to center tight cluster then fly out into groups
+    function converge() {
+      flyers.forEach(function (el) {
+        var jitter = 14;
+        el.style.transition = "transform .26s cubic-bezier(.4,.1,.3,1)";
+        el.style.transform = "translate(-50%,-50%) translate(" +
+          (Math.random() * jitter - jitter / 2) + "px," + (Math.random() * jitter - jitter / 2) +
+          "px) scale(.7)";
+        el.classList.add("glow");
+      });
+      setTimeout(scatterToGroups, 280);
+    }
+
+    // PHASE 3: build (hidden) cards to know target positions, then fly flyers out cluster by cluster
+    function scatterToGroups() {
+      // render result cards now (invisible-ish) so we can measure target slots
+      renderResults(groups, true); // staged=true -> cards start hidden, members hidden
+      results.style.display = "grid";
+
+      // map each flyer (by name) to its member <li> target
+      var memberEls = {};
+      results.querySelectorAll(".gc-members li").forEach(function (li) {
+        memberEls[li.getAttribute("data-name")] = li;
+      });
+
+      var arenaRect = arena.getBoundingClientRect();
+      // group flyers by their destination group for staggered cluster reveal
+      var byGroup = groups.map(function (grp) {
+        return grp.map(function (name) {
+          return { name: name, flyer: findFlyer(flyers, name), target: memberEls[name] };
+        });
+      });
+
+      var clusterDelay = 150;
+      byGroup.forEach(function (cluster, gi) {
+        setTimeout(function () {
+          // reveal the card
+          var card = results.children[gi];
+          if (card) card.classList.add("in");
+          cluster.forEach(function (item, idx) {
+            if (!item.flyer || !item.target) return;
+            var tRect = item.target.getBoundingClientRect();
+            var tx = tRect.left - arenaRect.left + 12;
+            var ty = tRect.top - arenaRect.top + tRect.height / 2;
+            // convert to translate from center origin (flyer is at left/top 50%)
+            var dx = tx - arenaRect.width / 2;
+            var dy = ty - arenaRect.height / 2;
+            item.flyer.style.transition = "transform .5s cubic-bezier(.16,.84,.28,1), opacity .35s ease";
+            item.flyer.style.transform = "translate(-50%,-50%) translate(" + dx + "px," + dy + "px) scale(.62)";
+            item.flyer.classList.remove("glow");
+            // fade flyer as the real member text appears
+            setTimeout(function () {
+              item.flyer.style.opacity = "0";
+              if (item.target) {
+                item.target.style.animationDelay = "0s";
+                item.target.style.opacity = "";
+              }
+            }, 300 + idx * 45);
+          });
+        }, gi * clusterDelay);
+      });
+
+      // finish
+      var totalTime = byGroup.length * clusterDelay + 700;
+      setTimeout(function () {
+        scrambleLayer.innerHTML = "";
+        renderResults(groups, false); // final clean render
+        results.style.display = "grid";
+        animating = false;
+        randomizeBtn.disabled = false;
+        rerollWrap.style.display = "flex";
+      }, totalTime);
+    }
+
+    flyers.forEach(function (el) { el.style.opacity = "1"; });
+    jumble(0);
+  }
+
+  function findFlyer(flyers, name) {
+    for (var i = 0; i < flyers.length; i++) {
+      if (flyers[i].textContent === name && !flyers[i]._used) { flyers[i]._used = true; return flyers[i]; }
+    }
+    return null;
+  }
+
+  // ---------- render ----------
+  function renderResults(groups, staged) {
+    results.innerHTML = "";
+    groups.forEach(function (grp, gi) {
+      var card = document.createElement("div");
+      card.className = "group-card" + (staged ? "" : " in");
+      var memberHtml = grp.map(function (name, mi) {
+        var delay = staged ? "9999s" : (0.12 + mi * 0.05) + "s";
+        return '<li data-name="' + escapeHtml(name) + '" style="animation-delay:' + delay + '">' +
+               '<span class="dot"></span>' + escapeHtml(name) + '</li>';
+      }).join("");
+      card.innerHTML =
+        '<div class="gc-head">' +
+          '<div class="gc-badge">' + (gi + 1) + '</div>' +
+          '<div><div class="gc-title">Group ' + (gi + 1) + '</div>' +
+          '<div class="gc-count">' + grp.length + ' student' + (grp.length !== 1 ? 's' : '') + '</div></div>' +
+        '</div>' +
+        '<ul class="gc-members">' + memberHtml + '</ul>';
+      if (!staged) card.style.animationDelay = (gi * 0.06) + "s";
+      results.appendChild(card);
+    });
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  // ---------- randomize trigger ----------
+  function doRandomize() {
+    var names = parseNames();
+    if (names.length < 2) {
+      toast("Add at least 2 students", true);
+      return;
+    }
+    syncStageHeader();
+    var groups = makeGroups(names);
+    state.lastResult = groups;
+    runReveal(names, groups);
+  }
+
+  function syncStageHeader() {
+    var t = titleEl.value.trim();
+    stageTitle.textContent = t || "Untitled grouping";
+    var names = parseNames();
+    var sp = computeSplit(names.length);
+    stageSub.textContent = names.length + " students · " + describeSizes(sp.sizes);
+  }
+
+  // ---------- save / load ----------
+  function loadSessions() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
+    catch (e) { return []; }
+  }
+  function persistSessions(list) {
+    localStorage.setItem(STORE_KEY, JSON.stringify(list));
+  }
+
+  function saveSession() {
+    var names = parseNames();
+    if (!names.length) { toast("Nothing to save yet", true); return; }
+    var list = loadSessions();
+    var session = {
+      id: "s" + Date.now(),
+      title: titleEl.value.trim() || "Untitled grouping",
+      names: names.slice(),
+      mode: state.mode,
+      num: state.num,
+      avoidRepeat: avoidRepeat.checked,
+      result: state.lastResult,
+      savedAt: Date.now()
+    };
+    list.unshift(session);
+    persistSessions(list);
+    renderSaved();
+    toast("Saved “" + session.title + "”");
+  }
+
+  function renderSaved() {
+    var list = loadSessions();
+    savedList.innerHTML = "";
+    if (!list.length) {
+      savedList.innerHTML = '<div style="font-size:12.5px;color:var(--ink-faint);padding:4px 2px;">No saved sessions yet.</div>';
+      return;
+    }
+    list.forEach(function (s) {
+      var item = document.createElement("div");
+      item.className = "saved-item";
+      var when = relTime(s.savedAt);
+      var splitDesc = s.mode === "groups" ? (s.num + " groups") : (s.num + "/group");
+      item.innerHTML =
+        '<div class="si-main">' +
+          '<div class="si-title">' + escapeHtml(s.title) + '</div>' +
+          '<div class="si-meta">' + s.names.length + ' students · ' + splitDesc + ' · ' + when + '</div>' +
+        '</div>' +
+        '<span class="si-del" title="Delete">&times;</span>';
+      item.querySelector(".si-main").addEventListener("click", function () { loadSession(s.id); });
+      item.querySelector(".si-del").addEventListener("click", function (e) {
+        e.stopPropagation();
+        deleteSession(s.id);
+      });
+      savedList.appendChild(item);
+    });
+  }
+
+  function loadSession(id) {
+    var list = loadSessions();
+    var s = list.find(function (x) { return x.id === id; });
+    if (!s) return;
+    namesEl.value = s.names.join("\n");
+    titleEl.value = s.title;
+    state.mode = s.mode || "groups";
+    state.num = s.num || 5;
+    numInput.value = state.num;
+    setMode(state.mode);
+    avoidRepeat.checked = !!s.avoidRepeat;
+    avoidRepeatMirror.checked = !!s.avoidRepeat;
+    updateCount();
+    syncStageHeader();
+    state.lastResult = s.result || null;
+    if (s.result && s.result.length) {
+      document.body.classList.remove("reveal-mode");
+      emptyState.style.display = "none";
+      results.style.display = "grid";
+      renderResults(s.result, false);
+      rerollWrap.style.display = "flex";
+    } else {
+      results.style.display = "none";
+      emptyState.style.display = "grid";
+      rerollWrap.style.display = "none";
+    }
+    toast("Loaded “" + s.title + "”");
+  }
+
+  function deleteSession(id) {
+    var list = loadSessions().filter(function (x) { return x.id !== id; });
+    persistSessions(list);
+    renderSaved();
+  }
+
+  function relTime(ts) {
+    var d = Date.now() - ts, m = Math.floor(d / 60000);
+    if (m < 1) return "just now";
+    if (m < 60) return m + "m ago";
+    var h = Math.floor(m / 60);
+    if (h < 24) return h + "h ago";
+    var days = Math.floor(h / 24);
+    if (days < 7) return days + "d ago";
+    return new Date(ts).toLocaleDateString();
+  }
+
+  // ---------- keep-apart ----------
+  function loadKeepApart() {
+    try { state.keepApart = JSON.parse(localStorage.getItem(KEEPAPART_KEY)) || []; }
+    catch (e) { state.keepApart = []; }
+  }
+  function persistKeepApart() {
+    localStorage.setItem(KEEPAPART_KEY, JSON.stringify(state.keepApart));
+  }
+  function refreshPairSelects(names) {
+    names = names || parseNames();
+    var a = $("pairA"), b = $("pairB");
+    var prevA = a.value, prevB = b.value;
+    var opts = '<option value="">Student…</option>' + names.map(function (n) {
+      return '<option value="' + escapeHtml(n) + '">' + escapeHtml(n) + '</option>';
+    }).join("");
+    a.innerHTML = opts; b.innerHTML = opts;
+    a.value = prevA; b.value = prevB;
+  }
+  function renderPairs() {
+    var list = $("pairList");
+    list.innerHTML = "";
+    if (!state.keepApart.length) {
+      list.innerHTML = '<div class="pair-empty">No keep-apart pairs yet. Add a pair above to keep two students in separate groups.</div>';
+      return;
+    }
+    state.keepApart.forEach(function (p, i) {
+      var chip = document.createElement("div");
+      chip.className = "pair-chip";
+      chip.innerHTML =
+        '<div class="names">' + escapeHtml(p[0]) + ' <span class="vs">KEEP APART</span> ' + escapeHtml(p[1]) + '</div>' +
+        '<span class="rm" title="Remove">&times;</span>';
+      chip.querySelector(".rm").addEventListener("click", function () {
+        state.keepApart.splice(i, 1);
+        persistKeepApart();
+        renderPairs();
+      });
+      list.appendChild(chip);
+    });
+  }
+  function addPair() {
+    var a = $("pairA").value, b = $("pairB").value;
+    if (!a || !b) { toast("Pick two students", true); return; }
+    if (a === b) { toast("Pick two different students", true); return; }
+    var k = keyPair(a, b);
+    if (state.keepApart.some(function (p) { return keyPair(p[0], p[1]) === k; })) {
+      toast("That pair is already listed", true); return;
+    }
+    state.keepApart.push([a, b]);
+    persistKeepApart();
+    renderPairs();
+    $("pairA").value = ""; $("pairB").value = "";
+  }
+
+  // ---------- mode / stepper ----------
+  function setMode(mode) {
+    state.mode = mode;
+    $("modeSeg").querySelectorAll("button").forEach(function (b) {
+      b.classList.toggle("active", b.getAttribute("data-mode") === mode);
+    });
+    // sensible defaults when switching
+    updateCount();
+  }
+
+  function clampNum() {
+    var v = parseInt(numInput.value, 10);
+    if (isNaN(v) || v < 1) v = 1;
+    if (v > 99) v = 99;
+    numInput.value = v;
+    state.num = v;
+    updateCount();
+  }
+
+  // ---------- toast ----------
+  var toastTimer;
+  function toast(msg, warn) {
+    var t = $("toast");
+    $("toastMsg").textContent = msg;
+    t.querySelector(".t-ico").textContent = warn ? "!" : "✓";
+    t.querySelector(".t-ico").style.color = warn ? "var(--gold)" : "var(--ok)";
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove("show"); }, 2200);
+  }
+
+  // ---------- seed example sessions ----------
+  function seedIfEmpty() {
+    if (localStorage.getItem(STORE_KEY)) return;
+    function grp(names, n) {
+      var g = [], sz = Math.ceil(names.length / n);
+      for (var i = 0; i < names.length; i += sz) g.push(names.slice(i, i + sz));
+      return g;
+    }
+    var p3 = ["Ava Thompson","Liam Garcia","Sophia Nguyen","Noah Patel","Isabella Rossi","Mason Cohen","Mia Okafor","Ethan Kim","Charlotte Reyes","Lucas Brandt","Amelia Foster","Elijah Mensah"];
+    var p5 = ["Oliver Hayes","Emma Castillo","William Tanaka","Sofia Andersen","Jack Romano","Aria Begum","Leo Fitzgerald","Nora Petrov","Caleb Wright","Layla Hassan","Owen Dlamini","Zoe Marchetti","Eli Sandberg","Maya Costa"];
+    var bio = ["Ruby Calloway","Theo Nakamura","Iris Bauer","Felix Moreno","Hazel Park","August Bellini","Clara Voss","Miles Okonkwo"];
+    var seed = [
+      { id: "seed1", title: "Period 3 — Lab Teams", names: p3, mode: "groups", num: 4, avoidRepeat: true, result: grp(p3, 4), savedAt: Date.now() - 1000 * 60 * 60 * 26 },
+      { id: "seed2", title: "Period 5 — Debate Pods", names: p5, mode: "size", num: 3, avoidRepeat: false, result: grp(p5, 5), savedAt: Date.now() - 1000 * 60 * 60 * 4 },
+      { id: "seed3", title: "Bio — Dissection Pairs", names: bio, mode: "size", num: 2, avoidRepeat: false, result: grp(bio, 4), savedAt: Date.now() - 1000 * 60 * 35 }
+    ];
+    persistSessions(seed);
+    // seed one keep-apart example
+    if (!localStorage.getItem(KEEPAPART_KEY)) {
+      localStorage.setItem(KEEPAPART_KEY, JSON.stringify([["Liam Garcia", "Mason Cohen"]]));
+    }
+  }
+
+  // ---------- events ----------
+  namesEl.addEventListener("input", function () { updateCount(); syncStageHeader(); });
+  titleEl.addEventListener("input", syncStageHeader);
+  numInput.addEventListener("input", clampNum);
+  $("numUp").addEventListener("click", function () { numInput.value = (parseInt(numInput.value, 10) || 0) + 1; clampNum(); });
+  $("numDown").addEventListener("click", function () { numInput.value = (parseInt(numInput.value, 10) || 2) - 1; clampNum(); });
+
+  $("modeSeg").addEventListener("click", function (e) {
+    var btn = e.target.closest("button");
+    if (!btn) return;
+    var mode = btn.getAttribute("data-mode");
+    // adjust default num to feel natural when toggling
+    if (mode === "size" && state.mode === "groups") { numInput.value = 4; }
+    if (mode === "groups" && state.mode === "size") { numInput.value = 5; }
+    state.num = parseInt(numInput.value, 10) || 4;
+    setMode(mode);
+  });
+
+  $("loadSample").addEventListener("click", function () {
+    namesEl.value = SAMPLE.join("\n");
+    updateCount(); syncStageHeader();
+    toast("Loaded 24 sample students");
+  });
+
+  randomizeBtn.addEventListener("click", doRandomize);
+  $("rerollBtn").addEventListener("click", doRandomize);
+  $("saveBtn").addEventListener("click", saveSession);
+  $("printBtn").addEventListener("click", function () {
+    if (!state.lastResult) { toast("Randomize first to print groups", true); return; }
+    window.print();
+  });
+
+  // avoid-repeat: keep the drawer + stage checkboxes in sync
+  avoidRepeat.addEventListener("change", function () { avoidRepeatMirror.checked = avoidRepeat.checked; });
+  avoidRepeatMirror.addEventListener("change", function () { avoidRepeat.checked = avoidRepeatMirror.checked; });
+
+  // drawer toggle
+  $("drawerToggle").addEventListener("click", function () {
+    document.body.classList.toggle("drawer-closed");
+    this.classList.toggle("active", !document.body.classList.contains("drawer-closed"));
+  });
+
+  // exit reveal mode -> bring controls back
+  $("exitReveal").addEventListener("click", function () {
+    document.body.classList.remove("reveal-mode");
+  });
+
+  // teacher modal
+  $("teacherTrigger").addEventListener("click", function () {
+    refreshPairSelects();
+    renderPairs();
+    $("teacherModal").classList.add("open");
+  });
+  $("modalClose").addEventListener("click", function () { $("teacherModal").classList.remove("open"); });
+  $("teacherModal").addEventListener("click", function (e) {
+    if (e.target === this) this.classList.remove("open");
+  });
+  $("addPair").addEventListener("click", addPair);
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      $("teacherModal").classList.remove("open");
+      document.body.classList.remove("reveal-mode");
+    }
+  });
+
+  // ---------- init ----------
+  seedIfEmpty();
+  loadKeepApart();
+  numInput.value = state.num;
+  setMode("groups");
+  updateCount();
+  syncStageHeader();
+  renderSaved();
+})();
+</script>
+</body>
+</html>
