@@ -13,7 +13,7 @@ pages_build_output_dir = "public"
 [[d1_databases]]
 binding = "DB"
 database_name = "group-randomizer-db"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_id = "f6d1677b-e19b-4985-b3d6-7984240d46ec"
 
 # --- Secrets (do NOT put real values here) ---------------------------------
 # Set these as encrypted secrets / environment variables, NOT in this file:
