@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
   name        TEXT,
   picture     TEXT,
   phrases     TEXT,                  -- JSON array of custom shuffle phrases (null = use defaults)
+  sound       TEXT,                  -- chosen shuffle sound key (null/'off' = silent)
   created_at  INTEGER NOT NULL
 );
 
