@@ -644,10 +644,6 @@
       </div>
     </div>
     <div class="modal-body">
-      <span class="teacher-tag">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
-        HIDDEN FROM STUDENTS
-      </span>
       <div id="paContext" style="font-size:12.5px; color:var(--sage-deep); background:var(--sage-soft); border:1px solid #d5e1cd; border-radius:10px; padding:8px 12px; margin-bottom:12px;"></div>
       <p style="margin:0 0 14px; font-size:13px; color:var(--ink-soft);">Keep certain students apart <b>in this list</b>. These pairs will never be placed in the same group. Only this list’s students appear below — saving the list saves its rules with it.</p>
       <div class="pair-add">
@@ -1224,13 +1220,18 @@
   // ---------- save / load (server-backed via /api/groups) ----------
   function loadSessions(){ return sessionsCache; }
   function refreshSavedList(){
+    // always show most-recently-saved first
+    sessionsCache.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
     savedList.innerHTML = '<option value="">— Saved groups —</option>' +
       sessionsCache.map(s=>`<option value="${s.id}">${escapeHtml(s.title)} · ${(s.names||[]).length} · ${fmtWhen(s.updatedAt)}</option>`).join('');
     savedList.value = (currentSessionId != null) ? currentSessionId : '';
   }
 
   // Debounced sync of the currently-loaded group to the server (no Save needed).
-  function scheduleSync(){ if(currentSessionId == null) return; clearTimeout(syncTimer); syncTimer = setTimeout(syncNow, 600); }
+  // suppressSync skips the auto-save while we're just *loading* a group, so merely
+  // viewing a saved group doesn't bump it to the top.
+  let suppressSync = false;
+  function scheduleSync(){ if(suppressSync || currentSessionId == null) return; clearTimeout(syncTimer); syncTimer = setTimeout(syncNow, 600); }
   async function syncNow(){
     if(currentSessionId == null) return;
     const id = currentSessionId, payload = currentGroupPayload();
@@ -1274,6 +1275,7 @@
     const id = savedList.value;
     if(id === ''){ currentSessionId = null; keepApart = []; return; }
     const s = sessionsCache.find(x=>x.id===id); if(!s) return;
+    suppressSync = true;   // loading a group shouldn't re-save it / bump its order
     currentSessionId = s.id;
     names.value = (s.names||[]).join('\n');
     titleEl.value = s.title || '';
@@ -1288,6 +1290,7 @@
     stage.classList.add('hidden'); stageHello.style.display='none';
     if(s.result){ renderResults(s.result, true); }
     else { showEmptyCanvas(s.title, 'Loaded — hit Randomize to make groups.'); }
+    suppressSync = false;
     showToast('Loaded "'+s.title+'"');
   });
   $('#printBtn').addEventListener('click', ()=>{
