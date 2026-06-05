@@ -373,6 +373,16 @@
     transition: opacity .25s var(--ease); white-space: nowrap;
   }
   .autosave-tag.show { opacity: 1; }
+  .sound-toggle {
+    margin-top: 10px; width: 100%;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: transparent; border: 1px solid var(--line-2); color: var(--ink-soft);
+    font-family: inherit; font-size: 12.5px; font-weight: 500; padding: 8px 12px; border-radius: 10px;
+    cursor: pointer; transition: all .15s var(--ease);
+  }
+  .sound-toggle:hover { background: var(--paper-2); border-color: var(--line); color: var(--ink); }
+  .sound-toggle.on { background: var(--sage-soft); border-color: #cfe0c8; color: var(--sage-deep); }
+  .sound-toggle svg { width: 15px; height: 15px; flex-shrink: 0; }
   .sound-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .sound-opt {
     display: flex; align-items: center; gap: 8px; cursor: pointer;
@@ -575,7 +585,7 @@
         <div class="hint" id="splitHint"><span class="arrow">→</span> Add students to see the split.</div>
       </div>
       <label class="switch" title="Tries to avoid pairing students who were grouped together in a saved round." style="margin:16px 0 14px;">
-        <input type="checkbox" id="avoidRepeat" />
+        <input type="checkbox" id="avoidRepeat" checked />
         <span class="track"></span>
         <span class="lbl"><b>Avoid repeat groupings</b><br><span class="sub">Mixes students from previous saved rounds</span></span>
       </label>
@@ -585,6 +595,7 @@
         </svg>
         Randomize groups
       </button>
+      <button class="sound-toggle" id="soundToggle" type="button" title="Turn the shuffle sound on or off"></button>
     </div>
   </aside>
 
@@ -714,6 +725,7 @@
   let sessionsCache = [];   // this user's saved groups, fetched from the server
   let userPhrases = null;   // null = use DEFAULT_PHRASES
   let userSound = 'off';    // shuffle sound key (per-account)
+  let lastSound = 'whoosh'; // remembered choice for the on/off toggle
   let syncTimer = null, phrasesTimer = null;
 
   async function apiGET(path){
@@ -882,56 +894,60 @@
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + dur + 0.02);
   }
+  // Each sound takes a duration and fills exactly that long (matched to the shuffle).
   const SOUNDS = {
-    whoosh: { label: 'Whoosh', play(ctx, t0){
-      const dur = 2.0, src = ctx.createBufferSource(); src.buffer = noiseBuffer(ctx, dur);
-      const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value = 1.2;
+    whoosh: { label: 'Whoosh', play(ctx, t0, dur){
+      const src = ctx.createBufferSource(); src.buffer = noiseBuffer(ctx, dur);
+      const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value = 1.1;
       bp.frequency.setValueAtTime(300, t0);
-      bp.frequency.exponentialRampToValueAtTime(2600, t0 + dur*0.7);
+      bp.frequency.exponentialRampToValueAtTime(2600, t0 + dur*0.72);
       bp.frequency.exponentialRampToValueAtTime(500, t0 + dur);
       const g = ctx.createGain();
-      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.22, t0 + 0.2);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.22, t0 + Math.min(0.25, dur*0.18));
+      g.gain.setValueAtTime(0.22, Math.max(t0 + 0.26, t0 + dur - 0.18));
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
       src.connect(bp).connect(g).connect(ctx.destination); src.start(t0); src.stop(t0 + dur);
     }},
-    arcade: { label: 'Arcade', play(ctx, t0){
-      const n = 15, step = 0.12, scale = [392,440,523,587,659,784];
-      for(let i=0;i<n;i++) blip(ctx, t0 + i*step, scale[Math.floor(Math.random()*scale.length)] * (Math.random()<.3?2:1), 0.1, 'square', 0.1);
+    arcade: { label: 'Arcade', play(ctx, t0, dur){
+      const step = 0.12, n = Math.max(4, Math.round(dur/step)), scale = [392,440,523,587,659,784];
+      for(let i=0;i<n;i++){ const t = t0 + i*step; if(t > t0 + dur) break; blip(ctx, t, scale[Math.floor(Math.random()*scale.length)] * (Math.random()<.3?2:1), 0.1, 'square', 0.1); }
     }},
-    drumroll: { label: 'Drumroll', play(ctx, t0){
-      const dur = 1.8; let t = t0, iv = 0.06;
-      while(t < t0 + dur){
+    drumroll: { label: 'Drumroll', play(ctx, t0, dur){
+      const end = t0 + dur; let t = t0, iv = 0.075;
+      while(t < end){
         const s = ctx.createBufferSource(); s.buffer = noiseBuffer(ctx, 0.05);
         const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 1800;
         const g = ctx.createGain(); const amp = 0.05 + 0.12*((t - t0)/dur);
         g.gain.setValueAtTime(amp, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
         s.connect(lp).connect(g).connect(ctx.destination); s.start(t); s.stop(t + 0.05);
-        t += iv; iv *= 0.975;
+        t += iv; iv *= 0.985; if(iv < 0.028) iv = 0.028;
       }
-      const c = ctx.createBufferSource(); c.buffer = noiseBuffer(ctx, 0.5);
+      const c = ctx.createBufferSource(); c.buffer = noiseBuffer(ctx, 0.4);
       const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 5000;
-      const cg = ctx.createGain(); cg.gain.setValueAtTime(0.3, t0 + dur); cg.gain.exponentialRampToValueAtTime(0.001, t0 + dur + 0.5);
-      c.connect(hp).connect(cg).connect(ctx.destination); c.start(t0 + dur); c.stop(t0 + dur + 0.5);
+      const cg = ctx.createGain(); cg.gain.setValueAtTime(0.25, end); cg.gain.exponentialRampToValueAtTime(0.001, end + 0.4);
+      c.connect(hp).connect(cg).connect(ctx.destination); c.start(end); c.stop(end + 0.4);
     }},
-    rising: { label: 'Rising', play(ctx, t0){
-      const dur = 2.0, o = ctx.createOscillator(); o.type = 'sawtooth';
-      o.frequency.setValueAtTime(120, t0); o.frequency.exponentialRampToValueAtTime(880, t0 + dur);
+    rising: { label: 'Rising', play(ctx, t0, dur){
+      const o = ctx.createOscillator(); o.type = 'sawtooth';
+      o.frequency.setValueAtTime(120, t0); o.frequency.exponentialRampToValueAtTime(900, t0 + dur);
       const lp = ctx.createBiquadFilter(); lp.type='lowpass';
       lp.frequency.setValueAtTime(400, t0); lp.frequency.exponentialRampToValueAtTime(3200, t0 + dur);
       const g = ctx.createGain();
-      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.11, t0 + 0.25);
-      g.gain.setValueAtTime(0.11, t0 + dur - 0.1); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.11, t0 + Math.min(0.25, dur*0.2));
+      g.gain.setValueAtTime(0.11, Math.max(t0 + 0.26, t0 + dur - 0.1)); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
       o.connect(lp).connect(g).connect(ctx.destination); o.start(t0); o.stop(t0 + dur);
     }},
-    casino: { label: 'Casino', play(ctx, t0){
-      const dur = 2.0; let t = t0, iv = 0.05;
-      while(t < t0 + dur){ blip(ctx, t, 1300, 0.03, 'triangle', 0.12); t += iv; iv *= 1.065; }
+    casino: { label: 'Casino', play(ctx, t0, dur){
+      const end = t0 + dur; let t = t0, iv = 0.045;
+      while(t < end){ blip(ctx, t, 1300, 0.03, 'triangle', 0.12); t += iv; iv *= 1.045; if(iv > 0.2) iv = 0.2; }
     }},
   };
-  function playShuffleSound(){
+  function playShuffleSound(durSec){
     if(!userSound || userSound === 'off' || !SOUNDS[userSound]) return;
     const ctx = getAudioCtx(); if(!ctx) return;
-    try{ SOUNDS[userSound].play(ctx, ctx.currentTime + 0.02); }catch(e){}
+    const dur = Math.max(0.6, durSec || 2.2);
+    try{ SOUNDS[userSound].play(ctx, ctx.currentTime + 0.02, dur); }catch(e){}
   }
   function playBurstSound(){
     if(!userSound || userSound === 'off') return;
@@ -1084,8 +1100,10 @@
     }
 
     // run this routine's passes
-    playShuffleSound();   // the chosen shuffle sound starts with the jumble
     const passInterval = routine.interval * SPEED;
+    // sound spans the jumble + gather, ending right as the ball bursts into confetti
+    const shuffleMs = passes*passInterval + (routine.hold ? 620 : 90)*SPEED + 680*SPEED;
+    playShuffleSound(shuffleMs / 1000);
     for(let pass=0; pass<passes; pass++){
       setTimeout(()=>jumble(pass), pass*passInterval);
     }
@@ -1408,7 +1426,7 @@
     document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on', x.dataset.mode==='groups'));
     numLabel.textContent = 'Groups';
     sizeVal.value = 5;
-    $('#avoidRepeat').checked = false;
+    $('#avoidRepeat').checked = true;   // avoid-repeat on by default for new groups
     savedList.value = '';
     updateCount();
     saveState();
@@ -1562,11 +1580,13 @@
     }));
   }
   function setSound(key){
+    if(key !== 'off') lastSound = key;
     userSound = key;
     grid_refresh();
+    updateSoundToggleBtn();
     // preview
-    if(key !== 'off' && SOUNDS[key]){ const ctx = getAudioCtx(); if(ctx) try{ SOUNDS[key].play(ctx, ctx.currentTime + 0.02); }catch(e){} }
-    // save to account (debounced via phrasesTimer-style)
+    if(key !== 'off' && SOUNDS[key]){ const ctx = getAudioCtx(); if(ctx) try{ SOUNDS[key].play(ctx, ctx.currentTime + 0.02, 2.0); }catch(e){} }
+    // save to account (debounced)
     clearTimeout(setSound._t);
     setSound._t = setTimeout(()=>{ apiSend('PUT','/api/settings/sound',{ sound: userSound }).catch(()=>{}); }, 300);
     flashSaved();
@@ -1575,6 +1595,20 @@
     const grid = $('#soundGrid'); if(!grid) return;
     grid.querySelectorAll('.sound-opt').forEach(b=>b.classList.toggle('on', b.dataset.key===userSound));
   }
+
+  // quick sound on/off toggle under the Randomize button (mirrors the gear picker)
+  function updateSoundToggleBtn(){
+    const btn = $('#soundToggle'); if(!btn) return;
+    const on = !!(userSound && userSound !== 'off');
+    btn.classList.toggle('on', on);
+    btn.innerHTML = (on ? SOUND_ICON : MUTE_ICON) +
+      '<span>' + (on ? ('Sound: ' + ((SOUNDS[userSound] && SOUNDS[userSound].label) || 'On')) : 'Sound off') + '</span>';
+  }
+  function toggleSound(){
+    if(userSound && userSound !== 'off'){ setSound('off'); showToast('Sound off'); }
+    else { setSound(lastSound || 'whoosh'); showToast('Sound on — ' + ((SOUNDS[userSound] && SOUNDS[userSound].label) || '')); }
+  }
+  if($('#soundToggle')) $('#soundToggle').addEventListener('click', toggleSound);
 
   // ---------- working state → server ----------
   // Unsaved drafts live only in the page until the first randomize / condition / Save
@@ -1611,6 +1645,8 @@
     ME = data.user;
     userPhrases = Array.isArray(data.phrases) ? data.phrases : null;
     userSound = (typeof data.sound === 'string' && data.sound) ? data.sound : 'off';
+    if(userSound !== 'off') lastSound = userSound;
+    updateSoundToggleBtn();
     showApp();
     try{ const g = await apiGET('/api/groups'); sessionsCache = g.groups || []; }
     catch(e){ sessionsCache = []; }
