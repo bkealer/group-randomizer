@@ -1233,9 +1233,10 @@
     const repeat = $('#avoidRepeat').checked;
 
     canvasTitle.textContent = title;
+    // Student-facing header: never reveal keep-apart rules — the roll should
+    // look completely random to the class.
     canvasMeta.textContent = `${groups.length} groups · ${total} students`
-      + (repeat?' · avoiding repeats':'')
-      + (keepApart.length?` · ${keepApart.length} keep-apart rule${keepApart.length>1?'s':''}`:'');
+      + (repeat?' · avoiding repeats':'');
     resultsActions.style.display = 'flex';
     emptyCanvas.style.display = 'none';
     dragTip.style.display = 'flex';
@@ -1434,7 +1435,7 @@
     savedList.value = '';
     updateCount();
     saveState();
-    showEmptyCanvas('New group', 'Name it, add your students, set any keep-apart conditions, then Randomize.');
+    showEmptyCanvas('New group', 'Name it, add your students, then Randomize.');
     refreshSavedList();
     titleEl.focus();
     showToast('Started a new group');
