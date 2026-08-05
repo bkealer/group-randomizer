@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Group Randomizer — 4 design directions</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{font-family:'Inter Tight',system-ui,sans-serif;background:#14171a;color:#eef1f3;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+  .bar{display:flex;align-items:center;gap:6px;padding:11px 16px;background:#0d0f11;border-bottom:1px solid #262b30;flex-wrap:wrap}
+  .bar h1{font-size:14px;font-weight:600;margin:0 14px 0 0;letter-spacing:-.01em}
+  .bar h1 span{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d8790;margin-left:8px}
+  button{
+    font-family:inherit;font-size:12.5px;font-weight:500;background:transparent;color:#c3cad0;
+    border:1px solid #2f363c;border-radius:4px;padding:6px 12px;cursor:pointer;transition:all .12s;
+  }
+  button:hover{border-color:#5c666e;color:#fff}
+  button.on{background:#eef1f3;color:#14171a;border-color:#eef1f3;font-weight:600}
+  .note{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#6d767e}
+  iframe{flex:1;width:100%;border:none;background:#fff}
+</style>
+</head>
+<body>
+  <div class="bar">
+    <h1>Group Randomizer<span>4 directions</span></h1>
+    <button class="on" data-src="1-tipoff.html">1 · Tip-Off</button>
+    <button data-src="2-rollcall.html">2 · Roll Call</button>
+    <button data-src="3-thedraw.html">3 · The Draw</button>
+    <button data-src="4-room214.html">4 · Room 214</button>
+    <button data-src="../../public/index.html">Current (live)</button>
+    <span class="note">Click the ⚙ in any mockup to see the teacher panel</span>
+  </div>
+  <iframe id="f" src="1-tipoff.html" title="Design direction preview"></iframe>
+<script>
+  var btns=document.querySelectorAll('button[data-src]');
+  btns.forEach(function(b){
+    b.onclick=function(){
+      btns.forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');
+      document.getElementById('f').src=b.dataset.src;
+    };
+  });
+</script>
+</body>
+</html>

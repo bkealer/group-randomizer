@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Draw — Group Randomizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --felt:#0e3b34;      /* the draw table */
+    --felt-2:#14544a;    /* a bin on the felt */
+    --felt-3:#0a2c27;
+    --bone:#f4f6f4;      /* instrument panel */
+    --bone-2:#e8ece9;
+    --ink:#0f1613;
+    --ink-2:#4c5b56;
+    --faint:#8b9a94;
+    --hot:#ff4d3d;       /* the one hot accent */
+    --brass:#e8b04b;
+    --edge:#d5dcd8;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    font-family:'Inter Tight',system-ui,sans-serif;
+    background:var(--bone);color:var(--ink);
+    -webkit-font-smoothing:antialiased;line-height:1.45;
+  }
+  .shell{display:flex;height:100vh;overflow:hidden}
+
+  /* ============ LEFT: instrument panel ============ */
+  .sidebar{
+    width:352px;flex-shrink:0;height:100vh;overflow-y:auto;
+    background:var(--bone);border-right:1px solid var(--edge);
+    padding:0 0 26px;
+  }
+  .head{
+    padding:18px 20px 16px;border-bottom:1px solid var(--edge);
+    display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+    position:sticky;top:0;background:var(--bone);z-index:5;
+  }
+  .head h1{
+    font-family:'Syne',sans-serif;font-weight:800;font-size:23px;
+    letter-spacing:-.02em;margin:0;line-height:1;
+  }
+  .head .sub{
+    font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--faint);margin-top:6px;
+  }
+  .gear{
+    background:none;border:1px solid var(--edge);width:33px;height:33px;border-radius:4px;
+    cursor:pointer;display:grid;place-items:center;color:var(--ink-2);flex-shrink:0;
+  }
+  .gear:hover{border-color:var(--ink);color:var(--ink)}
+  .gear svg{width:16px;height:16px}
+
+  .pad{padding:0 20px}
+  .blk{margin-top:18px}
+  .blk-h{
+    font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.17em;
+    text-transform:uppercase;color:var(--faint);margin-bottom:8px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .blk-h .no{color:var(--hot)}
+
+  input[type=text],select,textarea,input[type=number]{
+    font-family:inherit;font-size:14px;color:var(--ink);background:#fff;
+    border:1px solid var(--edge);border-radius:4px;padding:10px 12px;width:100%;
+    transition:border-color .14s,box-shadow .14s;
+  }
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%234c5b56' stroke-width='2.6'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+  textarea{min-height:150px;resize:vertical;line-height:1.7;font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+  :focus-visible{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(255,77,61,.22)}
+  ::placeholder{color:var(--faint)}
+
+  .btn{
+    font-family:'Inter Tight',sans-serif;font-weight:600;font-size:13.5px;
+    border:1px solid var(--edge);background:#fff;color:var(--ink);
+    border-radius:4px;padding:9px 13px;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:all .13s;
+  }
+  .btn:hover{border-color:var(--ink)}
+  .btn svg{width:15px;height:15px;stroke-width:1.9}
+  .btn-new{width:100%;background:var(--ink);color:var(--bone);border-color:var(--ink);margin-bottom:9px}
+  .btn-new:hover{background:var(--felt-2);border-color:var(--felt-2)}
+  .btn-danger{color:var(--hot);border-color:rgba(255,77,61,.4)}
+  .btn-danger:hover{background:var(--hot);color:#fff;border-color:var(--hot)}
+  .row3{display:grid;grid-template-columns:1fr auto auto;gap:7px;margin-top:8px}
+
+  /* the draw lever */
+  .lever{
+    width:100%;margin-top:16px;cursor:pointer;border:none;border-radius:5px;padding:0;
+    background:var(--hot);color:#fff;overflow:hidden;text-align:left;
+    box-shadow:0 3px 0 #c9382a;transition:transform .1s,box-shadow .1s;
+  }
+  .lever:hover{transform:translateY(1px);box-shadow:0 2px 0 #c9382a}
+  .lever .t{
+    font-family:'Syne',sans-serif;font-weight:700;font-size:17px;letter-spacing:-.01em;
+    padding:11px 16px 1px;display:block;white-space:nowrap;
+  }
+  .lever .s{
+    font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:rgba(255,255,255,.72);padding:0 16px 12px;display:block;
+  }
+
+  .ta-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+  .count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-2)}
+  .count b{color:var(--hot);font-weight:600}
+  .linkish{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);cursor:pointer;border-bottom:1px solid var(--hot);padding-bottom:1px}
+  .linkish:hover{color:var(--ink)}
+
+  .seg{display:flex;background:var(--bone-2);border-radius:4px;padding:3px;gap:3px;margin-bottom:11px}
+  .seg button{flex:1;border:none;background:none;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:500;color:var(--ink-2);padding:7px 6px;border-radius:3px}
+  .seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(15,22,19,.1)}
+
+  .size-row{display:flex;gap:10px;align-items:stretch}
+  .stepper{display:flex;width:110px;flex-shrink:0}
+  .stepper input{text-align:center;border-radius:0;border-left:none;border-right:none;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:17px;-moz-appearance:textfield;padding:6px 0}
+  .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .stepbtn{width:30px;border:1px solid var(--edge);background:#fff;cursor:pointer;color:var(--ink-2);font-size:16px;line-height:1}
+  .stepbtn:hover{background:var(--ink);color:var(--bone)}
+  .stepbtn.m{border-radius:4px 0 0 4px}
+  .stepbtn.p{border-radius:0 4px 4px 0}
+  .hint{flex:1;display:flex;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-2);background:#fff;border:1px solid var(--edge);border-radius:4px;padding:7px 11px}
+  .hint b{color:var(--ink);font-weight:600}
+
+  .switch{display:flex;align-items:center;gap:11px;cursor:pointer;margin-top:14px;user-select:none}
+  .switch input{position:absolute;opacity:0}
+  .track{width:38px;height:21px;border-radius:3px;background:var(--bone-2);border:1px solid var(--edge);position:relative;flex-shrink:0;transition:background .18s}
+  .track::after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:2px;background:var(--faint);transition:transform .18s,background .18s}
+  .switch input:checked+.track{background:var(--felt-2);border-color:var(--felt-2)}
+  .switch input:checked+.track::after{transform:translateX(17px);background:var(--brass)}
+  .switch .lbl{font-size:13px;font-weight:600}
+  .switch .sub{display:block;font-size:11.5px;color:var(--faint);font-weight:400}
+
+  .sound{margin-top:11px;width:100%;background:none;border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);padding:5px}
+  .sound:hover{color:var(--ink)}
+  .userrow{margin:22px 20px 0;padding-top:14px;border-top:1px solid var(--edge);display:flex;align-items:center;gap:10px}
+  .upic{width:26px;height:26px;border-radius:50%;background:var(--felt-2);flex-shrink:0}
+  .uname{font-size:13px;font-weight:600;flex:1}
+  .uout{background:none;border:none;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);cursor:pointer}
+  .uout:hover{color:var(--hot)}
+
+  /* ============ RIGHT: the felt table ============ */
+  .canvas{flex:1;height:100vh;display:flex;flex-direction:column;overflow:hidden;
+    background:radial-gradient(1000px 620px at 50% -6%,#155f54 0%,var(--felt) 62%);
+  }
+  .canvas-h{padding:20px 26px 0;display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
+  .canvas-h h2{
+    font-family:'Syne',sans-serif;font-weight:800;font-size:29px;letter-spacing:-.025em;
+    margin:0;line-height:1;color:#fff;
+  }
+  .meta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(244,246,244,.62);margin-top:7px;letter-spacing:.04em}
+  .acts{display:flex;gap:8px;margin-left:auto}
+  .act{
+    font-family:'Inter Tight',sans-serif;font-weight:600;font-size:13px;
+    background:rgba(244,246,244,.07);border:1px solid rgba(244,246,244,.24);color:#fff;
+    border-radius:4px;padding:8px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .13s;
+  }
+  .act:hover{background:rgba(244,246,244,.15);border-color:var(--brass);color:var(--brass)}
+  .act svg{width:14px;height:14px;stroke-width:1.9}
+
+  /* the draw slip — instrument readout, not a fairness claim */
+  .slip{
+    margin:16px 26px 0;padding:9px 14px;border-radius:4px;
+    background:var(--felt-3);border:1px solid rgba(232,176,75,.28);
+    display:flex;gap:22px;align-items:center;flex-wrap:wrap;
+    font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  }
+  .slip span{color:rgba(244,246,244,.5)}
+  .slip b{color:var(--brass);font-weight:600}
+
+  .board{flex:1;overflow-y:auto;padding:16px 26px 26px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(262px,1fr));gap:15px}
+  .bin{
+    background:var(--felt-2);border-radius:7px;padding:0 0 9px;
+    border:1px solid rgba(244,246,244,.1);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 6px 18px rgba(0,0,0,.22);
+  }
+  .bin-h{display:flex;align-items:center;gap:10px;padding:11px 14px 10px;border-bottom:1px solid rgba(244,246,244,.11)}
+  .plate{
+    width:29px;height:29px;flex-shrink:0;border-radius:4px;display:grid;place-items:center;
+    background:linear-gradient(160deg,#f0c874,var(--brass));color:var(--felt-3);
+    font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:14px;
+  }
+  .bin-t{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:#fff;letter-spacing:-.01em}
+  .bin-c{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(244,246,244,.45);letter-spacing:.1em}
+  .balls{list-style:none;margin:0;padding:9px 14px 0;display:flex;flex-direction:column;gap:7px}
+  .balls li{display:flex;align-items:center;gap:11px;font-size:16.5px;font-weight:500;color:#fff}
+  .ball{
+    width:27px;height:27px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;
+    background:#fff;color:var(--felt-3);border:2px solid var(--bc);
+    font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:11px;
+  }
+  .tip{
+    padding:12px 26px 18px;font-family:'IBM Plex Mono',monospace;font-size:10px;
+    letter-spacing:.1em;text-transform:uppercase;color:rgba(244,246,244,.4);
+    display:flex;align-items:center;gap:8px;
+  }
+  .tip svg{width:13px;height:13px}
+
+  /* ============ modal ============ */
+  .overlay{position:fixed;inset:0;background:rgba(10,44,39,.72);display:none;place-items:center;padding:20px;z-index:60}
+  .overlay.show{display:grid}
+  .modal{background:var(--bone);border-radius:6px;width:min(560px,100%);max-height:86dvh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+  .modal-h{padding:14px 18px;border-bottom:1px solid var(--edge);display:flex;align-items:center;gap:11px}
+  .modal-h h3{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;letter-spacing:-.02em;margin:0}
+  .tag{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--felt-2)}
+  .x{background:none;border:none;color:var(--ink-2);font-size:23px;cursor:pointer;line-height:1;padding:0 3px}
+  .modal-b{padding:18px;overflow-y:auto}
+  .modal-b p.d{font-size:13px;color:var(--ink-2);margin:0 0 12px}
+  .addrow{display:flex;gap:7px;margin-bottom:11px}
+  .pairs{display:flex;flex-direction:column;gap:6px}
+  .pair{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--edge);border-radius:4px;padding:9px 12px;font-size:13.5px;font-weight:500}
+  .pair .vs{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--hot)}
+  .pair .rm{margin-left:auto;background:none;border:none;color:var(--faint);cursor:pointer;font-size:17px}
+  .rule-h{height:1px;background:var(--edge);margin:19px 0 15px}
+  .sect{font-family:'Syne',sans-serif;font-weight:700;font-size:15.5px;margin:0 0 3px}
+  .sounds{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .snd{font-family:inherit;font-size:12.5px;font-weight:500;background:#fff;border:1px solid var(--edge);border-radius:4px;padding:9px;cursor:pointer}
+  .snd.on{background:var(--felt-2);color:#fff;border-color:var(--felt-2)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+  @media (max-width:900px){.shell{flex-direction:column;height:auto;overflow:visible}.sidebar{width:100%;height:auto}.canvas{height:auto}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="head">
+      <div>
+        <h1>The Draw</h1>
+        <div class="sub">Group Randomizer</div>
+      </div>
+      <button class="gear" id="gearBtn" title="Teacher settings" aria-label="Teacher settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+
+    <div class="pad">
+      <div class="blk">
+        <div class="blk-h">Saved groups</div>
+        <button class="btn btn-new">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          New group
+        </button>
+        <select>
+          <option>Period 3 — Lab partners</option>
+          <option>Period 1 — Debate teams</option>
+          <option>Period 5 — Project pods</option>
+        </select>
+        <div class="row3">
+          <button class="btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+            Save
+          </button>
+          <button class="btn btn-danger" title="Delete the selected saved group">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+          <button class="btn" title="Print">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="blk">
+        <div class="blk-h">Name</div>
+        <input type="text" value="Period 3 — Lab partners" />
+      </div>
+
+      <div class="blk">
+        <div class="blk-h">Roster <span class="no">30</span></div>
+        <textarea spellcheck="false">Tobias Vega
+Grace Lin
+Priya Desai
+Sofia Ramirez
+Maya Patel
+Ethan Nguyen
+Elena Novak</textarea>
+        <div class="ta-foot">
+          <span class="count"><b>30</b> students</span>
+          <a class="linkish" href="#">Load sample</a>
+        </div>
+      </div>
+
+      <div class="blk">
+        <div class="blk-h">Split</div>
+        <div class="seg">
+          <button class="on">Number of groups</button>
+          <button>Students per group</button>
+        </div>
+        <div class="size-row">
+          <div class="stepper">
+            <button class="stepbtn m" aria-label="decrease">−</button>
+            <input type="number" value="6" />
+            <button class="stepbtn p" aria-label="increase">+</button>
+          </div>
+          <div class="hint"><span>6 bins of <b>5</b></span></div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" checked />
+          <span class="track"></span>
+          <span class="lbl">Avoid repeat groupings<span class="sub">Mixes students from earlier rounds</span></span>
+        </label>
+        <button class="lever">
+          <span class="t">Randomize groups</span>
+          <span class="s">Draw 05 · 30 tokens</span>
+        </button>
+        <button class="sound">♪ Sound: Arcade</button>
+      </div>
+    </div>
+
+    <div class="userrow">
+      <div class="upic"></div>
+      <div class="uname">B. Kealer</div>
+      <button class="uout">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- ================= FELT ================= -->
+  <main class="canvas">
+    <div class="canvas-h">
+      <div>
+        <h2>Period 3 — Lab partners</h2>
+        <div class="meta">6 groups · 30 students · avoiding repeats</div>
+      </div>
+      <div class="acts">
+        <button class="act">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15"/></svg>
+          Randomize again
+        </button>
+        <button class="act">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+          Clear groups
+        </button>
+        <button class="act">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          Print
+        </button>
+      </div>
+    </div>
+
+    <div class="slip">
+      <span>Draw <b>05</b></span>
+      <span>Tokens <b>30</b></span>
+      <span>Bins <b>6</b></span>
+      <span>Per bin <b>5</b></span>
+      <span>Drawn <b>10:42 AM</b></span>
+    </div>
+
+    <div class="board"><div class="grid" id="grid"></div></div>
+
+    <div class="tip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>
+      Drag any student to move them between groups
+    </div>
+  </main>
+</div>
+
+<!-- ================= MODAL ================= -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-h">
+      <h3>Teacher settings</h3>
+      <span class="tag">Saved ✓</span>
+      <button class="x" id="modalX" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-b">
+      <p class="d">Keep certain students apart <b>in this list</b>. These pairs will never share a group. The class never sees these rules.</p>
+      <div class="addrow">
+        <select><option>Student…</option></select>
+        <select><option>Student…</option></select>
+        <button class="btn">Add</button>
+      </div>
+      <div class="pairs">
+        <div class="pair"><span>Marcus Bell</span><span class="vs">apart from</span><span>Diego Santos</span><button class="rm" aria-label="Remove">×</button></div>
+      </div>
+
+      <div class="rule-h"></div>
+      <p class="sect">Shuffle phrases</p>
+      <p class="d">Lines that flash on screen while the groups shuffle. These <b>are</b> shown to the class.</p>
+      <div class="addrow">
+        <input type="text" placeholder="e.g. Consulting the chaos goblins…" />
+        <button class="btn">Add</button>
+      </div>
+      <div class="pairs">
+        <div class="pair"><span>Shaking the name jar…</span><button class="rm" aria-label="Remove">×</button></div>
+        <div class="pair"><span>Consulting the chaos goblins…</span><button class="rm" aria-label="Remove">×</button></div>
+      </div>
+
+      <div class="rule-h"></div>
+      <p class="sect">Shuffle sound</p>
+      <p class="d">Plays while the groups shuffle. Tap one to hear it.</p>
+      <div class="sounds">
+        <button class="snd">Off</button><button class="snd">Whoosh</button><button class="snd on">Arcade</button>
+        <button class="snd">Drumroll</button><button class="snd">Rising</button><button class="snd">Casino</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var G=[
+    {c:'#ff4d3d',n:['Tobias Vega','Grace Lin','Priya Desai','Sofia Ramirez','Maya Patel']},
+    {c:'#e8b04b',n:['Ethan Nguyen','Elena Novak','Ravi Sharma','Yuki Tanaka','Emma Walsh']},
+    {c:'#5fc9e8',n:['Naomi Cohen','Theo Almeida','Jordan Lee','Marcus Bell','Hannah Goldberg']},
+    {c:'#7fe0a8',n:['Owen Murphy','Mason Clarke','Zara Hussain','Felix Dubois','Diego Santos']},
+    {c:'#c3a3f0',n:['Jamal Carter','Avery Thompson','Caleb Foster','Amara Okafor',"Liam O'Connor"]},
+    {c:'#ff9f7a',n:['Chloe Andersson','Isabella Rossi','Lucas Müller','Noah Kim','Olivia Bennett']}
+  ];
+  var h='',t=0;
+  G.forEach(function(g,i){
+    h+='<div class="bin">'
+      +'<div class="bin-h"><span class="plate">'+(i+1)+'</span><span class="bin-t">Group '+(i+1)+'</span><span class="bin-c">'+g.n.length+' drawn</span></div>'
+      +'<ul class="balls">';
+    g.n.forEach(function(nm){t++;h+='<li><span class="ball" style="--bc:'+g.c+'">'+t+'</span>'+nm+'</li>'});
+    h+='</ul></div>';
+  });
+  document.getElementById('grid').innerHTML=h;
+
+  var ov=document.getElementById('overlay');
+  document.getElementById('gearBtn').onclick=function(){ov.classList.add('show')};
+  document.getElementById('modalX').onclick=function(){ov.classList.remove('show')};
+  ov.onclick=function(e){if(e.target===ov)ov.classList.remove('show')};
+  document.querySelectorAll('.seg button').forEach(function(b){
+    b.onclick=function(){document.querySelectorAll('.seg button').forEach(function(x){x.classList.remove('on')});b.classList.add('on')};
+  });
+})();
+</script>
+</body>
+</html>

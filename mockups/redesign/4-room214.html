@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Room 214 — Group Randomizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Public+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#fafaf7;
+    --paper-2:#f2f3f0;
+    --graphite:#1f2328;
+    --pencil:#6b7480;
+    --faint:#9aa2ac;
+    --rule:#e0e3e0;
+    --blue:#7fb7d9;      /* non-photo blue — construction lines */
+    --blue-ink:#2f6fd0;  /* the one saturated accent */
+    --r:2px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    font-family:'Public Sans',system-ui,sans-serif;
+    background:var(--paper);color:var(--graphite);
+    -webkit-font-smoothing:antialiased;line-height:1.5;
+  }
+  .shell{display:flex;height:100vh;overflow:hidden}
+
+  /* ============ LEFT: drafting panel ============ */
+  .sidebar{
+    width:346px;flex-shrink:0;height:100vh;overflow-y:auto;
+    background:var(--paper);border-right:1px solid var(--graphite);
+    padding:0 0 26px;
+  }
+  .head{
+    padding:17px 20px 15px;border-bottom:1px solid var(--rule);
+    display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+    position:sticky;top:0;background:var(--paper);z-index:5;
+  }
+  .head h1{
+    font-family:'Jost',sans-serif;font-weight:600;font-size:21px;
+    letter-spacing:.16em;text-transform:uppercase;margin:0;line-height:1;
+  }
+  .head .sub{font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);margin-top:7px}
+  .gear{background:none;border:1px solid var(--rule);width:32px;height:32px;border-radius:var(--r);cursor:pointer;display:grid;place-items:center;color:var(--pencil);flex-shrink:0}
+  .gear:hover{border-color:var(--graphite);color:var(--graphite)}
+  .gear svg{width:16px;height:16px}
+
+  .pad{padding:0 20px}
+  .blk{margin-top:18px}
+  .blk-h{
+    font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;
+    color:var(--pencil);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--rule);
+    display:flex;justify-content:space-between;align-items:baseline;
+  }
+  .blk-h em{font-style:normal;color:var(--faint)}
+
+  input[type=text],select,textarea,input[type=number]{
+    font-family:inherit;font-size:14px;color:var(--graphite);background:#fff;
+    border:1px solid var(--rule);border-radius:var(--r);padding:9px 11px;width:100%;
+    transition:border-color .14s,box-shadow .14s;
+  }
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%236b7480' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:30px}
+  textarea{min-height:150px;resize:vertical;line-height:1.75;font-size:13.5px}
+  :focus-visible{outline:none;border-color:var(--blue-ink);box-shadow:0 0 0 3px rgba(47,111,208,.18)}
+  ::placeholder{color:var(--faint)}
+
+  .btn{
+    font-family:'Jost',sans-serif;font-weight:500;font-size:13px;letter-spacing:.07em;text-transform:uppercase;
+    border:1px solid var(--graphite);background:transparent;color:var(--graphite);
+    border-radius:var(--r);padding:9px 13px;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:all .13s;
+  }
+  .btn:hover{background:var(--graphite);color:var(--paper)}
+  .btn svg{width:14px;height:14px;stroke-width:1.7}
+  .btn-new{width:100%;background:var(--graphite);color:var(--paper);margin-bottom:9px}
+  .btn-new:hover{background:var(--blue-ink);border-color:var(--blue-ink)}
+  .btn-go{
+    width:100%;margin-top:16px;padding:14px;background:var(--blue-ink);border-color:var(--blue-ink);
+    color:#fff;font-size:15px;letter-spacing:.1em;
+  }
+  .btn-go:hover{background:#245ab0;border-color:#245ab0;color:#fff}
+  .btn-danger{border-color:var(--rule);color:#b0473a}
+  .btn-danger:hover{background:#b0473a;border-color:#b0473a}
+  .row3{display:grid;grid-template-columns:1fr auto auto;gap:6px;margin-top:8px}
+
+  .ta-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+  .count{font-family:'Space Mono',monospace;font-size:11px;color:var(--pencil)}
+  .count b{color:var(--graphite)}
+  .linkish{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.05em;color:var(--pencil);cursor:pointer;border-bottom:1px solid var(--blue);padding-bottom:1px}
+  .linkish:hover{color:var(--blue-ink);border-color:var(--blue-ink)}
+
+  .seg{display:flex;border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;margin-bottom:11px}
+  .seg button{flex:1;border:none;background:#fff;cursor:pointer;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.04em;color:var(--pencil);padding:9px 6px}
+  .seg button+button{border-left:1px solid var(--rule)}
+  .seg button.on{background:var(--graphite);color:var(--paper)}
+
+  .size-row{display:flex;gap:9px;align-items:stretch}
+  .stepper{display:flex;width:108px;flex-shrink:0}
+  .stepper input{text-align:center;border-radius:0;border-left:none;border-right:none;font-family:'Space Mono',monospace;font-weight:700;font-size:16px;-moz-appearance:textfield;padding:6px 0}
+  .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .stepbtn{width:30px;border:1px solid var(--rule);background:#fff;cursor:pointer;color:var(--pencil);font-size:16px;line-height:1}
+  .stepbtn:hover{background:var(--graphite);color:var(--paper)}
+  .stepbtn.m{border-radius:var(--r) 0 0 var(--r)}
+  .stepbtn.p{border-radius:0 var(--r) var(--r) 0}
+  .hint{flex:1;display:flex;align-items:center;font-family:'Space Mono',monospace;font-size:10.5px;color:var(--pencil);border:1px dashed var(--blue);border-radius:var(--r);padding:7px 10px;background:rgba(127,183,217,.07)}
+  .hint b{color:var(--graphite)}
+
+  .switch{display:flex;align-items:center;gap:11px;cursor:pointer;margin-top:14px;user-select:none}
+  .switch input{position:absolute;opacity:0}
+  .track{width:36px;height:20px;border-radius:10px;background:#fff;border:1px solid var(--rule);position:relative;flex-shrink:0;transition:all .18s}
+  .track::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--faint);transition:transform .18s,background .18s}
+  .switch input:checked+.track{background:var(--blue-ink);border-color:var(--blue-ink)}
+  .switch input:checked+.track::after{transform:translateX(16px);background:#fff}
+  .switch .lbl{font-size:12.5px;font-weight:600}
+  .switch .sub{display:block;font-size:11px;color:var(--faint);font-weight:400}
+
+  .sound{margin-top:11px;width:100%;background:none;border:none;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--pencil);padding:5px}
+  .sound:hover{color:var(--graphite)}
+  .userrow{margin:22px 20px 0;padding-top:14px;border-top:1px solid var(--rule);display:flex;align-items:center;gap:10px}
+  .upic{width:25px;height:25px;border-radius:50%;background:var(--paper-2);border:1px solid var(--rule);flex-shrink:0}
+  .uname{font-size:12.5px;font-weight:600;flex:1}
+  .uout{background:none;border:none;font-family:'Space Mono',monospace;font-size:10px;color:var(--faint);cursor:pointer}
+  .uout:hover{color:#b0473a}
+
+  /* ============ RIGHT: the floor plan ============ */
+  .canvas{
+    flex:1;height:100vh;display:flex;flex-direction:column;overflow:hidden;
+    background:
+      repeating-linear-gradient(to right,rgba(127,183,217,.16) 0 1px,transparent 1px 40px),
+      repeating-linear-gradient(to bottom,rgba(127,183,217,.16) 0 1px,transparent 1px 40px),
+      var(--paper);
+  }
+  .canvas-h{
+    padding:19px 26px 15px;display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;
+    background:var(--paper);border-bottom:1px solid var(--graphite);
+  }
+  .canvas-h h2{
+    font-family:'Jost',sans-serif;font-weight:600;font-size:26px;letter-spacing:.05em;
+    text-transform:uppercase;margin:0;line-height:1.05;
+  }
+  .meta{font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:var(--pencil);margin-top:7px}
+  .acts{display:flex;gap:7px;margin-left:auto}
+  .act{
+    font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.07em;text-transform:uppercase;
+    background:transparent;border:1px solid var(--rule);color:var(--graphite);
+    border-radius:var(--r);padding:8px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .13s;
+  }
+  .act:hover{border-color:var(--graphite);background:var(--graphite);color:var(--paper)}
+  .act svg{width:13px;height:13px;stroke-width:1.7}
+
+  .board{flex:1;overflow-y:auto;padding:24px 26px 26px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:22px}
+
+  /* a pod = a table drawn in plan */
+  .pod{position:relative;background:#fff;border:1.5px solid var(--graphite);border-radius:4px;padding:0 0 12px}
+  /* registration ticks at the corners, like a drawing */
+  .pod::before,.pod::after{
+    content:'';position:absolute;width:9px;height:9px;border:1.5px solid var(--pc);
+  }
+  .pod::before{top:-1.5px;left:-1.5px;border-right:none;border-bottom:none}
+  .pod::after{bottom:-1.5px;right:-1.5px;border-left:none;border-top:none}
+  .pod-h{display:flex;align-items:baseline;gap:9px;padding:12px 15px 8px}
+  .pod-t{font-family:'Jost',sans-serif;font-weight:600;font-size:17px;letter-spacing:.09em;text-transform:uppercase}
+  .pod-n{
+    font-family:'Space Mono',monospace;font-weight:700;font-size:12px;color:var(--pc);
+    border:1.5px solid var(--pc);border-radius:2px;padding:1px 6px;
+  }
+  .pod-c{margin-left:auto;font-family:'Space Mono',monospace;font-size:10px;color:var(--faint)}
+  /* dimension line — states the seat count as a measured fact */
+  .dim{margin:0 15px 9px;height:9px;position:relative;border-left:1px solid var(--pencil);border-right:1px solid var(--pencil)}
+  .dim::before{content:'';position:absolute;top:4px;left:0;right:0;border-top:1px solid var(--pencil)}
+  .dim span{
+    position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:#fff;padding:0 6px;
+    font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--pencil);
+  }
+  .seats{list-style:none;margin:0;padding:0 15px;display:flex;flex-direction:column;gap:1px}
+  .seats li{
+    display:flex;align-items:center;gap:11px;padding:6px 0 6px 0;
+    font-size:16px;font-weight:500;border-bottom:1px dotted var(--rule);
+  }
+  .seats li:last-child{border-bottom:none}
+  .chair{width:4px;height:19px;border-radius:1px;background:var(--pc);flex-shrink:0}
+  .seatno{font-family:'Space Mono',monospace;font-size:10px;color:var(--faint);margin-left:auto}
+  .tip{
+    padding:13px 26px 18px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.07em;
+    color:var(--pencil);display:flex;align-items:center;gap:8px;background:var(--paper);border-top:1px solid var(--rule);
+  }
+  .tip svg{width:13px;height:13px}
+
+  /* ============ modal ============ */
+  .overlay{position:fixed;inset:0;background:rgba(31,35,40,.55);display:none;place-items:center;padding:20px;z-index:60}
+  .overlay.show{display:grid}
+  .modal{background:var(--paper);border:1.5px solid var(--graphite);border-radius:3px;width:min(560px,100%);max-height:86dvh;display:flex;flex-direction:column}
+  .modal-h{padding:13px 18px;border-bottom:1px solid var(--graphite);display:flex;align-items:center;gap:11px}
+  .modal-h h3{font-family:'Jost',sans-serif;font-weight:600;font-size:16px;letter-spacing:.11em;text-transform:uppercase;margin:0}
+  .tag{margin-left:auto;font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-ink)}
+  .x{background:none;border:none;color:var(--pencil);font-size:23px;cursor:pointer;line-height:1;padding:0 3px}
+  .modal-b{padding:18px;overflow-y:auto}
+  .modal-b p.d{font-size:13px;color:var(--pencil);margin:0 0 12px}
+  .addrow{display:flex;gap:7px;margin-bottom:11px}
+  .pairs{display:flex;flex-direction:column;gap:6px}
+  .pair{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--rule);border-radius:var(--r);padding:9px 12px;font-size:13.5px;font-weight:500}
+  .pair .vs{font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:#b0473a}
+  .pair .rm{margin-left:auto;background:none;border:none;color:var(--faint);cursor:pointer;font-size:17px}
+  .rule-h{height:1px;background:var(--rule);margin:19px 0 15px}
+  .sect{font-family:'Jost',sans-serif;font-weight:600;font-size:14px;letter-spacing:.09em;text-transform:uppercase;margin:0 0 4px}
+  .sounds{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .snd{font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.05em;background:#fff;border:1px solid var(--rule);border-radius:var(--r);padding:9px;cursor:pointer}
+  .snd.on{background:var(--graphite);color:var(--paper);border-color:var(--graphite)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+  @media (max-width:900px){.shell{flex-direction:column;height:auto;overflow:visible}.sidebar{width:100%;height:auto}.canvas{height:auto}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="head">
+      <div>
+        <h1>Room 214</h1>
+        <div class="sub">Group Randomizer</div>
+      </div>
+      <button class="gear" id="gearBtn" title="Teacher settings" aria-label="Teacher settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+
+    <div class="pad">
+      <div class="blk">
+        <div class="blk-h"><span>Saved groups</span><em>3</em></div>
+        <button class="btn btn-new">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          New group
+        </button>
+        <select>
+          <option>Period 3 — Lab partners</option>
+          <option>Period 1 — Debate teams</option>
+          <option>Period 5 — Project pods</option>
+        </select>
+        <div class="row3">
+          <button class="btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+            Save
+          </button>
+          <button class="btn btn-danger" title="Delete the selected saved group">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+          <button class="btn" title="Print">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="blk">
+        <div class="blk-h"><span>Name</span></div>
+        <input type="text" value="Period 3 — Lab partners" />
+      </div>
+
+      <div class="blk">
+        <div class="blk-h"><span>Roster</span><em>30 students</em></div>
+        <textarea spellcheck="false">Tobias Vega
+Grace Lin
+Priya Desai
+Sofia Ramirez
+Maya Patel
+Ethan Nguyen</textarea>
+        <div class="ta-foot">
+          <span class="count"><b>30</b> students</span>
+          <a class="linkish" href="#">Load sample roster</a>
+        </div>
+      </div>
+
+      <div class="blk">
+        <div class="blk-h"><span>Split</span></div>
+        <div class="seg">
+          <button class="on">Number of groups</button>
+          <button>Students per group</button>
+        </div>
+        <div class="size-row">
+          <div class="stepper">
+            <button class="stepbtn m" aria-label="decrease">−</button>
+            <input type="number" value="6" />
+            <button class="stepbtn p" aria-label="increase">+</button>
+          </div>
+          <div class="hint"><span>6 tables × <b>5</b> seats</span></div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" checked />
+          <span class="track"></span>
+          <span class="lbl">Avoid repeat groupings<span class="sub">Mixes students from earlier rounds</span></span>
+        </label>
+        <button class="btn btn-go">Randomize groups</button>
+        <button class="sound">♪ Shuffle sound: Arcade</button>
+      </div>
+    </div>
+
+    <div class="userrow">
+      <div class="upic"></div>
+      <div class="uname">B. Kealer</div>
+      <button class="uout">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- ================= PLAN ================= -->
+  <main class="canvas">
+    <div class="canvas-h">
+      <div>
+        <h2>Period 3 — Lab partners</h2>
+        <div class="meta">6 groups · 30 students · avoiding repeats</div>
+      </div>
+      <div class="acts">
+        <button class="act">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15"/></svg>
+          Randomize again
+        </button>
+        <button class="act">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+          Clear groups
+        </button>
+        <button class="act">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          Print
+        </button>
+      </div>
+    </div>
+
+    <div class="board"><div class="grid" id="grid"></div></div>
+
+    <div class="tip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>
+      Drag any student to move them between tables
+    </div>
+  </main>
+</div>
+
+<!-- ================= MODAL ================= -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-h">
+      <h3>Teacher settings</h3>
+      <span class="tag">Saved ✓</span>
+      <button class="x" id="modalX" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-b">
+      <p class="d">Keep certain students apart <b>in this list</b>. These pairs will never share a table. The class never sees these rules.</p>
+      <div class="addrow">
+        <select><option>Student…</option></select>
+        <select><option>Student…</option></select>
+        <button class="btn">Add</button>
+      </div>
+      <div class="pairs">
+        <div class="pair"><span>Marcus Bell</span><span class="vs">apart from</span><span>Diego Santos</span><button class="rm" aria-label="Remove">×</button></div>
+      </div>
+
+      <div class="rule-h"></div>
+      <p class="sect">Shuffle phrases</p>
+      <p class="d">Lines that flash on screen while the groups shuffle. These <b>are</b> shown to the class.</p>
+      <div class="addrow">
+        <input type="text" placeholder="e.g. Consulting the chaos goblins…" />
+        <button class="btn">Add</button>
+      </div>
+      <div class="pairs">
+        <div class="pair"><span>Shaking the name jar…</span><button class="rm" aria-label="Remove">×</button></div>
+        <div class="pair"><span>Consulting the chaos goblins…</span><button class="rm" aria-label="Remove">×</button></div>
+      </div>
+
+      <div class="rule-h"></div>
+      <p class="sect">Shuffle sound</p>
+      <p class="d">Plays while the groups shuffle. Tap one to hear it.</p>
+      <div class="sounds">
+        <button class="snd">Off</button><button class="snd">Whoosh</button><button class="snd on">Arcade</button>
+        <button class="snd">Drumroll</button><button class="snd">Rising</button><button class="snd">Casino</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var G=[
+    {c:'#2f6fd0',n:['Tobias Vega','Grace Lin','Priya Desai','Sofia Ramirez','Maya Patel']},
+    {c:'#b0473a',n:['Ethan Nguyen','Elena Novak','Ravi Sharma','Yuki Tanaka','Emma Walsh']},
+    {c:'#3f8a68',n:['Naomi Cohen','Theo Almeida','Jordan Lee','Marcus Bell','Hannah Goldberg']},
+    {c:'#c08a1e',n:['Owen Murphy','Mason Clarke','Zara Hussain','Felix Dubois','Diego Santos']},
+    {c:'#6b57a3',n:['Jamal Carter','Avery Thompson','Caleb Foster','Amara Okafor',"Liam O'Connor"]},
+    {c:'#2b8b94',n:['Chloe Andersson','Isabella Rossi','Lucas Müller','Noah Kim','Olivia Bennett']}
+  ];
+  var h='';
+  G.forEach(function(g,i){
+    h+='<div class="pod" style="--pc:'+g.c+'">'
+      +'<div class="pod-h"><span class="pod-n">T'+(i+1)+'</span><span class="pod-t">Group '+(i+1)+'</span><span class="pod-c">'+g.n.length+'</span></div>'
+      +'<div class="dim"><span>'+g.n.length+' seats</span></div>'
+      +'<ul class="seats">';
+    g.n.forEach(function(nm,j){
+      h+='<li><span class="chair"></span>'+nm+'<span class="seatno">'+(j+1)+'</span></li>';
+    });
+    h+='</ul></div>';
+  });
+  document.getElementById('grid').innerHTML=h;
+
+  var ov=document.getElementById('overlay');
+  document.getElementById('gearBtn').onclick=function(){ov.classList.add('show')};
+  document.getElementById('modalX').onclick=function(){ov.classList.remove('show')};
+  ov.onclick=function(e){if(e.target===ov)ov.classList.remove('show')};
+  document.querySelectorAll('.seg button').forEach(function(b){
+    b.onclick=function(){document.querySelectorAll('.seg button').forEach(function(x){x.classList.remove('on')});b.classList.add('on')};
+  });
+})();
+</script>
+</body>
+</html>

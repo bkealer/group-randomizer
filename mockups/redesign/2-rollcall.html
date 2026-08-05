@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Roll Call — Group Randomizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --desk:#6f8387;       /* slate-teal desktop — cards sit on it */
+    --desk-dk:#5d7074;
+    --card:#fcfcf8;       /* index card stock */
+    --rule:#a8cbe0;       /* printed cyan rule */
+    --margin:#d8564a;     /* the red margin line */
+    --manila:#e9c784;     /* folder tab */
+    --graphite:#23211e;
+    --graphite-2:#5d5a54;
+    --faint:#918d86;
+    --edge:#d9d5cb;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    font-family:'Instrument Sans',system-ui,sans-serif;
+    background:var(--desk); color:var(--graphite);
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+  .shell{display:flex;height:100vh;overflow:hidden}
+
+  /* ============ LEFT: the folder ============ */
+  .sidebar{
+    width:376px;flex-shrink:0;height:100vh;overflow-y:auto;
+    background:var(--card);
+    box-shadow:2px 0 0 var(--edge), 14px 0 30px rgba(35,33,30,.14);
+    padding:0 0 26px;position:relative;z-index:2;
+  }
+  .tab{
+    background:var(--manila);height:34px;display:flex;align-items:center;
+    padding:0 20px;gap:8px;
+  }
+  .tab .lbl{
+    font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.17em;
+    text-transform:uppercase;color:#7a5c1e;
+  }
+  .head{padding:17px 20px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .head h1{
+    font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:27px;
+    letter-spacing:-.025em;margin:0;line-height:1;
+  }
+  .head .sub{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--faint);margin-top:5px;letter-spacing:.03em}
+  .gear{
+    background:var(--card);border:1px solid var(--edge);width:34px;height:34px;border-radius:50%;
+    cursor:pointer;display:grid;place-items:center;color:var(--graphite-2);flex-shrink:0;
+  }
+  .gear:hover{border-color:var(--graphite);color:var(--graphite)}
+  .gear svg{width:16px;height:16px}
+
+  .pad{padding:0 20px}
+  .blk{margin-top:19px}
+  .blk-h{
+    font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--faint);margin-bottom:8px;
+  }
+
+  input[type=text],select,textarea,input[type=number]{
+    font-family:inherit;font-size:14px;color:var(--graphite);background:#fff;
+    border:1px solid var(--edge);border-radius:3px;padding:10px 12px;width:100%;
+    transition:border-color .14s,box-shadow .14s;
+  }
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%235d5a54' stroke-width='2.6'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+  :focus-visible{outline:none;border-color:var(--graphite);box-shadow:0 0 0 3px rgba(216,86,74,.26)}
+  ::placeholder{color:var(--faint)}
+  /* roster sits inside the card's red margin, on ruled stock */
+  textarea{
+    min-height:156px;resize:vertical;line-height:26px;padding:7px 12px 7px 34px;
+    background-image:
+      linear-gradient(to right,transparent 25px,rgba(216,86,74,.55) 25px,rgba(216,86,74,.55) 26px,transparent 26px),
+      repeating-linear-gradient(to bottom,transparent 0 25px,var(--rule) 25px 26px);
+    background-color:#fff;background-attachment:local;background-position:0 7px;
+  }
+
+  .btn{
+    font-family:'Instrument Sans',sans-serif;font-weight:600;font-size:13.5px;
+    border:1px solid var(--graphite);background:var(--card);color:var(--graphite);
+    border-radius:3px;padding:9px 13px;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    box-shadow:2px 2px 0 rgba(35,33,30,.16);transition:transform .1s,box-shadow .1s;
+  }
+  .btn:hover{transform:translate(1px,1px);box-shadow:1px 1px 0 rgba(35,33,30,.16)}
+  .btn svg{width:15px;height:15px;stroke-width:1.9}
+  .btn-new{width:100%;background:var(--graphite);color:var(--card);margin-bottom:9px}
+  .btn-go{
+    width:100%;background:var(--margin);border-color:var(--graphite);color:#fff;
+    font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;
+    padding:13px;margin-top:15px;box-shadow:3px 3px 0 var(--graphite);
+  }
+  .btn-go:hover{box-shadow:2px 2px 0 var(--graphite)}
+  .btn-danger{color:var(--margin);border-color:var(--margin);box-shadow:2px 2px 0 rgba(216,86,74,.2)}
+  .row3{display:grid;grid-template-columns:1fr auto auto;gap:7px;margin-top:8px}
+
+  .ta-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+  .count{font-family:'DM Mono',monospace;font-size:11.5px;color:var(--graphite-2)}
+  .count b{color:var(--graphite);font-weight:500}
+  .linkish{font-size:12px;color:var(--graphite-2);cursor:pointer;text-decoration:underline;text-decoration-color:var(--margin);text-underline-offset:3px}
+  .linkish:hover{color:var(--graphite)}
+
+  .seg{display:flex;gap:0;border:1px solid var(--edge);border-radius:3px;overflow:hidden;margin-bottom:11px}
+  .seg button{flex:1;border:none;background:#fff;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:500;color:var(--graphite-2);padding:9px 6px}
+  .seg button+button{border-left:1px solid var(--edge)}
+  .seg button.on{background:var(--graphite);color:var(--card);font-weight:600}
+
+  .size-row{display:flex;gap:10px;align-items:stretch}
+  .stepper{display:flex;width:112px;flex-shrink:0}
+  .stepper input{text-align:center;border-radius:0;border-left:none;border-right:none;font-family:'DM Mono',monospace;font-size:17px;-moz-appearance:textfield;padding:6px 0}
+  .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .stepbtn{width:31px;border:1px solid var(--edge);background:#fff;cursor:pointer;color:var(--graphite-2);font-size:16px;line-height:1}
+  .stepbtn:hover{background:var(--graphite);color:var(--card)}
+  .stepbtn.m{border-radius:3px 0 0 3px}
+  .stepbtn.p{border-radius:0 3px 3px 0}
+  .hint{flex:1;display:flex;align-items:center;font-family:'DM Mono',monospace;font-size:11.5px;color:var(--graphite-2);background:#fff;border:1px solid var(--edge);border-radius:3px;padding:7px 11px}
+  .hint b{color:var(--graphite)}
+
+  .switch{display:flex;align-items:center;gap:11px;cursor:pointer;margin-top:14px;user-select:none}
+  .switch input{position:absolute;opacity:0}
+  .track{width:38px;height:21px;border-radius:11px;background:var(--edge);position:relative;flex-shrink:0;transition:background .18s}
+  .track::after{content:'';position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .18s}
+  .switch input:checked+.track{background:var(--graphite)}
+  .switch input:checked+.track::after{transform:translateX(17px)}
+  .switch .lbl{font-size:13px;font-weight:600}
+  .switch .sub{display:block;font-size:11.5px;color:var(--faint);font-weight:400}
+
+  .sound{margin-top:11px;width:100%;background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;color:var(--graphite-2);padding:5px}
+  .sound:hover{color:var(--graphite)}
+  .userrow{margin:22px 20px 0;padding-top:14px;border-top:1px solid var(--edge);display:flex;align-items:center;gap:10px}
+  .upic{width:26px;height:26px;border-radius:50%;background:var(--desk);flex-shrink:0}
+  .uname{font-size:13px;font-weight:600;flex:1}
+  .uout{background:none;border:none;font-family:'DM Mono',monospace;font-size:11px;color:var(--faint);cursor:pointer}
+  .uout:hover{color:var(--margin)}
+
+  /* ============ RIGHT: the desk ============ */
+  .canvas{flex:1;height:100vh;display:flex;flex-direction:column;overflow:hidden;
+    background:
+      radial-gradient(900px 500px at 70% 0%,rgba(255,255,255,.16),transparent 60%),
+      var(--desk);
+  }
+  .canvas-h{padding:20px 26px 14px;display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap}
+  .canvas-h h2{
+    font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:30px;
+    letter-spacing:-.03em;margin:0;line-height:1;color:#1b1a17;
+  }
+  .meta{font-family:'DM Mono',monospace;font-size:11.5px;color:#4e5559;margin-top:6px}
+  .acts{display:flex;gap:8px;margin-left:auto}
+  .act{
+    font-family:'Instrument Sans',sans-serif;font-weight:600;font-size:13px;
+    background:var(--card);border:1px solid var(--graphite);color:var(--graphite);
+    border-radius:3px;padding:8px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+    box-shadow:2px 2px 0 rgba(35,33,30,.18);transition:transform .1s,box-shadow .1s;
+  }
+  .act:hover{transform:translate(1px,1px);box-shadow:1px 1px 0 rgba(35,33,30,.18)}
+  .act svg{width:14px;height:14px;stroke-width:1.9}
+
+  .board{flex:1;overflow-y:auto;padding:6px 26px 26px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(252px,1fr));gap:18px}
+  .card{
+    background:var(--card);border-radius:2px;padding:0 0 12px;
+    box-shadow:0 1px 0 var(--edge),0 6px 16px rgba(35,33,30,.18);
+    transform:rotate(var(--rot));transition:transform .16s ease, box-shadow .16s ease;
+  }
+  .card:hover{transform:rotate(0deg) translateY(-2px);box-shadow:0 10px 24px rgba(35,33,30,.24)}
+  .card-h{
+    display:flex;align-items:center;gap:9px;padding:12px 16px 9px;
+    border-bottom:1px solid var(--edge);
+  }
+  .card-h .gn{
+    font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:19px;
+    letter-spacing:-.02em;
+  }
+  .card-h .cnt{
+    margin-left:auto;font-family:'DM Mono',monospace;font-size:10.5px;color:var(--faint);
+  }
+  .swatch{width:9px;height:9px;border-radius:50%;background:var(--gc);flex-shrink:0}
+  /* one continuous ruling for the whole card, not per row */
+  .names{
+    list-style:none;margin:0;padding:0;
+    background-image:
+      linear-gradient(to right,transparent 25px,rgba(216,86,74,.5) 25px,rgba(216,86,74,.5) 26px,transparent 26px),
+      repeating-linear-gradient(to bottom,transparent 0 32px,var(--rule) 32px 33px);
+  }
+  .names li{
+    display:flex;align-items:center;gap:10px;
+    height:33px;padding:0 16px 0 34px;font-size:16px;font-weight:500;
+  }
+  .names li:hover{background-color:rgba(168,203,224,.2)}
+  .tip{
+    padding:0 26px 18px;font-family:'DM Mono',monospace;font-size:11px;color:#4e5559;
+    display:flex;align-items:center;gap:8px;
+  }
+  .tip svg{width:14px;height:14px}
+
+  /* ============ modal ============ */
+  .overlay{position:fixed;inset:0;background:rgba(35,33,30,.6);display:none;place-items:center;padding:20px;z-index:60}
+  .overlay.show{display:grid}
+  .modal{background:var(--card);border-radius:3px;width:min(560px,100%);max-height:86dvh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+  .modal-h{background:var(--manila);padding:12px 18px;display:flex;align-items:center;gap:11px}
+  .modal-h h3{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.02em;margin:0;color:#4a3813}
+  .tag{margin-left:auto;font-family:'DM Mono',monospace;font-size:10px;color:#7a5c1e}
+  .x{background:none;border:none;color:#4a3813;font-size:23px;cursor:pointer;line-height:1;padding:0 3px}
+  .modal-b{padding:18px;overflow-y:auto}
+  .modal-b p.d{font-size:13px;color:var(--graphite-2);margin:0 0 12px}
+  .addrow{display:flex;gap:7px;margin-bottom:11px}
+  .pairs{display:flex;flex-direction:column;gap:6px}
+  .pair{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--edge);border-radius:3px;padding:9px 12px;font-size:13.5px;font-weight:500}
+  .pair .vs{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--margin)}
+  .pair .rm{margin-left:auto;background:none;border:none;color:var(--faint);cursor:pointer;font-size:17px}
+  .rule-h{height:1px;background:var(--edge);margin:19px 0 15px}
+  .sect{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;letter-spacing:-.015em;margin:0 0 3px}
+  .sounds{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .snd{font-family:inherit;font-size:12.5px;font-weight:500;background:#fff;border:1px solid var(--edge);border-radius:3px;padding:9px;cursor:pointer}
+  .snd.on{background:var(--graphite);color:var(--card);border-color:var(--graphite)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.card{transform:none}}
+  @media (max-width:900px){.shell{flex-direction:column;height:auto;overflow:visible}.sidebar{width:100%;height:auto}.canvas{height:auto}.card{transform:none}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="tab"><span class="lbl">Teacher — Period 3</span></div>
+    <div class="head">
+      <div>
+        <h1>Roll Call</h1>
+        <div class="sub">group randomizer</div>
+      </div>
+      <button class="gear" id="gearBtn" title="Teacher settings" aria-label="Teacher settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+
+    <div class="pad">
+      <div class="blk">
+        <div class="blk-h">Saved groups</div>
+        <button class="btn btn-new">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          New group
+        </button>
+        <select>
+          <option>Period 3 — Lab partners</option>
+          <option>Period 1 — Debate teams</option>
+          <option>Period 5 — Project pods</option>
+        </select>
+        <div class="row3">
+          <button class="btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+            Save
+          </button>
+          <button class="btn btn-danger" title="Delete the selected saved group">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+          <button class="btn" title="Print">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="blk">
+        <div class="blk-h">Name</div>
+        <input type="text" value="Period 3 — Lab partners" />
+      </div>
+
+      <div class="blk">
+        <div class="blk-h">Roster</div>
+        <textarea spellcheck="false">Tobias Vega
+Grace Lin
+Priya Desai
+Sofia Ramirez
+Maya Patel
+Ethan Nguyen</textarea>
+        <div class="ta-foot">
+          <span class="count"><b>30</b> students</span>
+          <a class="linkish" href="#">Load sample roster</a>
+        </div>
+      </div>
+
+      <div class="blk">
+        <div class="blk-h">Split</div>
+        <div class="seg">
+          <button class="on">Number of groups</button>
+          <button>Students per group</button>
+        </div>
+        <div class="size-row">
+          <div class="stepper">
+            <button class="stepbtn m" aria-label="decrease">−</button>
+            <input type="number" value="6" />
+            <button class="stepbtn p" aria-label="increase">+</button>
+          </div>
+          <div class="hint"><span>6 groups of <b>5</b></span></div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" checked />
+          <span class="track"></span>
+          <span class="lbl">Avoid repeat groupings<span class="sub">Mixes students from earlier rounds</span></span>
+        </label>
+        <button class="btn btn-go">Randomize groups</button>
+        <button class="sound">♪ Shuffle sound: Arcade</button>
+      </div>
+    </div>
+
+    <div class="userrow">
+      <div class="upic"></div>
+      <div class="uname">B. Kealer</div>
+      <button class="uout">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- ================= DESK ================= -->
+  <main class="canvas">
+    <div class="canvas-h">
+      <div>
+        <h2>Period 3 — Lab partners</h2>
+        <div class="meta">6 groups · 30 students · avoiding repeats</div>
+      </div>
+      <div class="acts">
+        <button class="act">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15"/></svg>
+          Randomize again
+        </button>
+        <button class="act">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+          Clear groups
+        </button>
+        <button class="act">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          Print
+        </button>
+      </div>
+    </div>
+
+    <div class="board"><div class="grid" id="grid"></div></div>
+
+    <div class="tip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>
+      Drag any student to move them between groups
+    </div>
+  </main>
+</div>
+
+<!-- ================= MODAL ================= -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-h">
+      <h3>Teacher settings</h3>
+      <span class="tag">Saved ✓</span>
+      <button class="x" id="modalX" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-b">
+      <p class="d">Keep certain students apart <b>in this list</b>. These pairs will never share a group. The class never sees these rules.</p>
+      <div class="addrow">
+        <select><option>Student…</option></select>
+        <select><option>Student…</option></select>
+        <button class="btn">Add</button>
+      </div>
+      <div class="pairs">
+        <div class="pair"><span>Marcus Bell</span><span class="vs">apart from</span><span>Diego Santos</span><button class="rm" aria-label="Remove">×</button></div>
+      </div>
+
+      <div class="rule-h"></div>
+      <p class="sect">Shuffle phrases</p>
+      <p class="d">Lines that flash on screen while the groups shuffle. These <b>are</b> shown to the class.</p>
+      <div class="addrow">
+        <input type="text" placeholder="e.g. Consulting the chaos goblins…" />
+        <button class="btn">Add</button>
+      </div>
+      <div class="pairs">
+        <div class="pair"><span>Shaking the name jar…</span><button class="rm" aria-label="Remove">×</button></div>
+        <div class="pair"><span>Consulting the chaos goblins…</span><button class="rm" aria-label="Remove">×</button></div>
+      </div>
+
+      <div class="rule-h"></div>
+      <p class="sect">Shuffle sound</p>
+      <p class="d">Plays while the groups shuffle. Tap one to hear it.</p>
+      <div class="sounds">
+        <button class="snd">Off</button><button class="snd">Whoosh</button><button class="snd on">Arcade</button>
+        <button class="snd">Drumroll</button><button class="snd">Rising</button><button class="snd">Casino</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var G=[
+    {c:'#d8564a',r:'-0.7deg',n:['Tobias Vega','Grace Lin','Priya Desai','Sofia Ramirez','Maya Patel']},
+    {c:'#2f7fa8',r:'0.6deg',n:['Ethan Nguyen','Elena Novak','Ravi Sharma','Yuki Tanaka','Emma Walsh']},
+    {c:'#4a8b5c',r:'-0.4deg',n:['Naomi Cohen','Theo Almeida','Jordan Lee','Marcus Bell','Hannah Goldberg']},
+    {c:'#c98a2b',r:'0.8deg',n:['Owen Murphy','Mason Clarke','Zara Hussain','Felix Dubois','Diego Santos']},
+    {c:'#7a5ea8',r:'-0.6deg',n:['Jamal Carter','Avery Thompson','Caleb Foster','Amara Okafor',"Liam O'Connor"]},
+    {c:'#3f8f8a',r:'0.5deg',n:['Chloe Andersson','Isabella Rossi','Lucas Müller','Noah Kim','Olivia Bennett']}
+  ];
+  var h='';
+  G.forEach(function(g,i){
+    h+='<div class="card" style="--gc:'+g.c+';--rot:'+g.r+'">'
+      +'<div class="card-h"><span class="swatch"></span><span class="gn">Group '+(i+1)+'</span><span class="cnt">'+g.n.length+'</span></div>'
+      +'<ul class="names">';
+    g.n.forEach(function(nm){h+='<li>'+nm+'</li>'});
+    h+='</ul></div>';
+  });
+  document.getElementById('grid').innerHTML=h;
+
+  var ov=document.getElementById('overlay');
+  document.getElementById('gearBtn').onclick=function(){ov.classList.add('show')};
+  document.getElementById('modalX').onclick=function(){ov.classList.remove('show')};
+  ov.onclick=function(e){if(e.target===ov)ov.classList.remove('show')};
+  document.querySelectorAll('.seg button').forEach(function(b){
+    b.onclick=function(){document.querySelectorAll('.seg button').forEach(function(x){x.classList.remove('on')});b.classList.add('on')};
+  });
+})();
+</script>
+</body>
+</html>

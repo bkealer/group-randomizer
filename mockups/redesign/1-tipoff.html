@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tip-Off — Group Randomizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&family=Azeret+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --court:#10233a;      /* deep court navy — the stage */
+    --lane:#1b3352;       /* raised panel on the stage */
+    --chalk:#f2f5f8;      /* light side */
+    --chalk-2:#e5eaf0;
+    --amber:#ffb020;      /* scoreboard glow */
+    --line-green:#3ddc97; /* court line */
+    --ink:#0d1a2b;
+    --ink-soft:#5a6a7d;
+    --ink-faint:#8b98a7;
+    --rule:#d7dee6;
+    --r:6px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    font-family:'Barlow',system-ui,sans-serif;
+    background:var(--chalk); color:var(--ink);
+    -webkit-font-smoothing:antialiased; line-height:1.45;
+  }
+  .shell{display:flex;height:100vh;overflow:hidden}
+
+  /* ============ LEFT: the coach's panel (near view) ============ */
+  .sidebar{
+    width:360px;flex-shrink:0;height:100vh;overflow-y:auto;
+    background:var(--chalk); border-right:2px solid var(--ink);
+    padding:0 0 28px; display:flex; flex-direction:column;
+  }
+  .brandbar{
+    background:var(--ink); color:var(--chalk);
+    padding:14px 18px; display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:5;
+  }
+  .brand{display:flex;align-items:baseline;gap:9px}
+  .brand h1{
+    font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:25px;
+    letter-spacing:.02em; text-transform:uppercase; margin:0; line-height:1;
+  }
+  .brand .sub{
+    font-family:'Azeret Mono',monospace; font-size:9.5px; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--amber);
+  }
+  .gear{
+    background:none;border:1.5px solid rgba(242,245,248,.32); color:var(--chalk);
+    width:32px;height:32px;border-radius:var(--r);cursor:pointer;display:grid;place-items:center;
+  }
+  .gear:hover{border-color:var(--amber);color:var(--amber)}
+  .gear svg{width:16px;height:16px}
+
+  .pad{padding:0 18px}
+  .blk{margin-top:20px}
+  .blk-h{
+    font-family:'Azeret Mono',monospace; font-size:10px; font-weight:500;
+    letter-spacing:.15em; text-transform:uppercase; color:var(--ink-faint);
+    display:flex; align-items:center; gap:9px; margin-bottom:9px;
+  }
+  .blk-h::after{content:'';flex:1;height:1px;background:var(--rule)}
+
+  input[type=text],select,textarea,input[type=number]{
+    font-family:inherit;font-size:14px;color:var(--ink);background:#fff;
+    border:1.5px solid var(--rule); border-radius:var(--r); padding:9px 11px; width:100%;
+    transition:border-color .12s, box-shadow .12s;
+  }
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%235a6a7d' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:30px}
+  textarea{min-height:148px;resize:vertical;line-height:1.65;font-size:14px}
+  :focus-visible{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px var(--amber)}
+  ::placeholder{color:var(--ink-faint)}
+
+  .btn{
+    font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:15px;
+    letter-spacing:.045em; text-transform:uppercase;
+    border:1.5px solid var(--ink); background:#fff; color:var(--ink);
+    border-radius:var(--r); padding:9px 14px; cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    transition:background .12s,color .12s;
+  }
+  .btn:hover{background:var(--ink);color:var(--chalk)}
+  .btn svg{width:15px;height:15px;stroke-width:2.2}
+  .btn-new{width:100%;background:var(--ink);color:var(--chalk);margin-bottom:9px}
+  .btn-new:hover{background:var(--amber);color:var(--ink);border-color:var(--ink)}
+  .btn-go{
+    width:100%; background:var(--amber); border-color:var(--ink); color:var(--ink);
+    font-size:21px; padding:13px; margin-top:14px;
+    box-shadow:3px 3px 0 var(--ink);
+  }
+  .btn-go:hover{background:var(--amber);color:var(--ink);transform:translate(1px,1px);box-shadow:2px 2px 0 var(--ink)}
+  .btn-danger{border-color:#c8402f;color:#c8402f}
+  .btn-danger:hover{background:#c8402f;color:#fff}
+  .row3{display:grid;grid-template-columns:1fr auto auto;gap:7px;margin-top:8px}
+
+  .ta-foot{display:flex;align-items:center;justify-content:space-between;margin-top:7px}
+  .count{font-family:'Azeret Mono',monospace;font-size:11px;color:var(--ink-soft);letter-spacing:.04em}
+  .count b{color:var(--ink);font-size:14px;font-weight:700}
+  .linkish{font-family:'Azeret Mono',monospace;font-size:10.5px;letter-spacing:.05em;color:var(--ink-soft);text-transform:uppercase;cursor:pointer;border-bottom:1.5px solid var(--amber);padding-bottom:1px}
+  .linkish:hover{color:var(--ink)}
+
+  .seg{display:flex;border:1.5px solid var(--ink);border-radius:var(--r);overflow:hidden;margin-bottom:11px}
+  .seg button{
+    flex:1;border:none;background:#fff;cursor:pointer;font-family:'Barlow',sans-serif;
+    font-size:12.5px;font-weight:600;color:var(--ink-soft);padding:8px 6px;
+  }
+  .seg button+button{border-left:1.5px solid var(--ink)}
+  .seg button.on{background:var(--ink);color:var(--chalk)}
+
+  .size-row{display:flex;gap:10px;align-items:stretch}
+  .stepper{display:flex;width:118px;flex-shrink:0}
+  .stepper input{text-align:center;border-radius:0;border-left:none;border-right:none;font-family:'Azeret Mono',monospace;font-weight:700;font-size:17px;-moz-appearance:textfield;padding:6px 0}
+  .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .stepbtn{width:32px;border:1.5px solid var(--rule);background:#fff;cursor:pointer;color:var(--ink);font-size:17px;line-height:1}
+  .stepbtn:hover{background:var(--ink);color:var(--chalk)}
+  .stepbtn.m{border-radius:var(--r) 0 0 var(--r)}
+  .stepbtn.p{border-radius:0 var(--r) var(--r) 0}
+  .hint{
+    flex:1;display:flex;align-items:center;font-family:'Azeret Mono',monospace;
+    font-size:11px;line-height:1.4;color:var(--ink-soft);
+    background:#fff;border:1.5px dashed var(--rule);border-radius:var(--r);padding:7px 10px;
+  }
+  .hint b{color:var(--ink)}
+
+  .switch{display:flex;align-items:center;gap:10px;cursor:pointer;margin-top:13px;user-select:none}
+  .switch input{position:absolute;opacity:0}
+  .track{width:40px;height:22px;border:1.5px solid var(--ink);border-radius:2px;background:#fff;position:relative;flex-shrink:0;transition:background .15s}
+  .track::after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;background:var(--ink);transition:transform .15s}
+  .switch input:checked+.track{background:var(--line-green)}
+  .switch input:checked+.track::after{transform:translateX(19px)}
+  .switch .lbl{font-size:12.5px;font-weight:600}
+  .switch .sub{display:block;font-size:11px;color:var(--ink-faint);font-weight:400}
+
+  .sound{
+    margin-top:10px;width:100%;background:none;border:none;cursor:pointer;
+    font-family:'Azeret Mono',monospace;font-size:10.5px;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--ink-soft);padding:5px;
+  }
+  .sound:hover{color:var(--ink)}
+  .userrow{
+    margin:22px 18px 0;padding-top:13px;border-top:1.5px solid var(--rule);
+    display:flex;align-items:center;gap:9px;
+  }
+  .upic{width:26px;height:26px;border-radius:50%;background:var(--lane);flex-shrink:0}
+  .uname{font-size:12.5px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .uout{background:none;border:none;font-family:'Azeret Mono',monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);cursor:pointer}
+  .uout:hover{color:#c8402f}
+
+  /* ============ RIGHT: the stage (far view) ============ */
+  .canvas{flex:1;height:100vh;display:flex;flex-direction:column;background:var(--court);overflow:hidden}
+  .scorebar{
+    background:var(--ink); color:var(--chalk);
+    padding:13px 26px; display:flex; align-items:center; gap:26px;
+    border-bottom:3px solid var(--amber);
+  }
+  .scorebar h2{
+    font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:24px;
+    text-transform:uppercase;letter-spacing:.03em;margin:0;line-height:1;
+  }
+  .readout{display:flex;gap:22px;margin-left:auto;align-items:center}
+  .stat{text-align:right}
+  .stat .n{font-family:'Azeret Mono',monospace;font-weight:700;font-size:22px;color:var(--amber);line-height:1}
+  .stat .k{font-family:'Azeret Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,245,248,.55);margin-top:3px}
+  .acts{display:flex;gap:8px;padding:11px 26px;background:var(--lane);border-bottom:1px solid rgba(242,245,248,.1)}
+  .act{
+    font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:13.5px;
+    letter-spacing:.05em;text-transform:uppercase;
+    background:none;border:1.5px solid rgba(242,245,248,.28);color:var(--chalk);
+    border-radius:var(--r);padding:6px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  }
+  .act:hover{border-color:var(--amber);color:var(--amber)}
+  .act svg{width:14px;height:14px;stroke-width:2.2}
+
+  .board{flex:1;overflow-y:auto;padding:22px 26px 26px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:16px}
+  .team{
+    background:var(--lane); border-radius:var(--r);
+    border-top:4px solid var(--tc);
+    padding:0 0 6px; overflow:hidden;
+  }
+  .team-h{
+    display:flex;align-items:center;gap:10px;padding:12px 15px 11px;
+    border-bottom:1px solid rgba(242,245,248,.09);
+  }
+  .team-n{
+    font-family:'Azeret Mono',monospace;font-weight:700;font-size:26px;
+    color:var(--tc);line-height:1;letter-spacing:-.02em;
+  }
+  .team-t{
+    font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:19px;
+    text-transform:uppercase;letter-spacing:.04em;color:var(--chalk);line-height:1;
+  }
+  .team-c{
+    margin-left:auto;font-family:'Azeret Mono',monospace;font-size:10px;letter-spacing:.1em;
+    color:rgba(242,245,248,.5);text-transform:uppercase;
+  }
+  .roster{list-style:none;margin:0;padding:6px 0 0}
+  .roster li{
+    display:flex;align-items:center;gap:11px;padding:7px 15px;
+    font-size:17px;font-weight:500;color:var(--chalk);
+  }
+  .roster li:hover{background:rgba(242,245,248,.05)}
+  .jersey{
+    width:26px;height:26px;flex-shrink:0;display:grid;place-items:center;
+    font-family:'Azeret Mono',monospace;font-weight:700;font-size:11px;
+    color:var(--court);background:var(--tc);border-radius:3px;
+  }
+  .tip{
+    padding:12px 26px;font-family:'Azeret Mono',monospace;font-size:10.5px;
+    letter-spacing:.08em;text-transform:uppercase;color:rgba(242,245,248,.42);
+    border-top:1px solid rgba(242,245,248,.1);display:flex;align-items:center;gap:8px;
+  }
+  .tip svg{width:14px;height:14px}
+
+  /* ============ teacher modal ============ */
+  .overlay{position:fixed;inset:0;background:rgba(13,26,43,.72);display:none;place-items:center;padding:20px;z-index:60}
+  .overlay.show{display:grid}
+  .modal{background:var(--chalk);border:2px solid var(--ink);border-radius:var(--r);width:min(560px,100%);max-height:86dvh;display:flex;flex-direction:column}
+  .modal-h{background:var(--ink);color:var(--chalk);padding:13px 18px;display:flex;align-items:center;gap:11px}
+  .modal-h h3{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:.04em;margin:0}
+  .tag{margin-left:auto;font-family:'Azeret Mono',monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--line-green)}
+  .x{background:none;border:none;color:var(--chalk);font-size:24px;cursor:pointer;line-height:1;padding:0 3px}
+  .modal-b{padding:18px;overflow-y:auto}
+  .modal-b p.d{font-size:13px;color:var(--ink-soft);margin:0 0 12px}
+  .addrow{display:flex;gap:7px;margin-bottom:11px}
+  .pairs{display:flex;flex-direction:column;gap:6px}
+  .pair{display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid var(--rule);border-radius:var(--r);padding:8px 11px;font-size:13.5px;font-weight:500}
+  .pair .vs{font-family:'Azeret Mono',monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#c8402f}
+  .pair .rm{margin-left:auto;background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:17px}
+  .rule{height:1.5px;background:var(--rule);margin:19px 0 15px}
+  .sect{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:17px;text-transform:uppercase;letter-spacing:.04em;margin:0 0 3px}
+  .sounds{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .snd{font-family:'Barlow',sans-serif;font-size:12.5px;font-weight:600;background:#fff;border:1.5px solid var(--rule);border-radius:var(--r);padding:9px;cursor:pointer}
+  .snd.on{background:var(--ink);color:var(--chalk);border-color:var(--ink)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+  @media (max-width:900px){.shell{flex-direction:column;height:auto;overflow:visible}.sidebar{width:100%;height:auto;border-right:none;border-bottom:2px solid var(--ink)}.canvas{height:auto}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brandbar">
+      <div class="brand">
+        <h1>Tip-Off</h1>
+        <span class="sub">Group Randomizer</span>
+      </div>
+      <button class="gear" id="gearBtn" title="Teacher settings" aria-label="Teacher settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+
+    <div class="pad">
+      <div class="blk">
+        <div class="blk-h">Saved groups</div>
+        <button class="btn btn-new">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          New group
+        </button>
+        <select>
+          <option>Period 3 — Lab partners</option>
+          <option>Period 1 — Debate teams</option>
+          <option>Period 5 — Project pods</option>
+        </select>
+        <div class="row3">
+          <button class="btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+            Save
+          </button>
+          <button class="btn btn-danger" title="Delete the selected saved group">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+          <button class="btn" title="Print">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="blk">
+        <div class="blk-h">Name</div>
+        <input type="text" value="Period 3 — Lab partners" />
+      </div>
+
+      <div class="blk">
+        <div class="blk-h">Roster</div>
+        <textarea spellcheck="false">Tobias Vega
+Grace Lin
+Priya Desai
+Sofia Ramirez
+Maya Patel
+Ethan Nguyen
+Elena Novak
+Ravi Sharma
+Yuki Tanaka
+Emma Walsh
+Naomi Cohen
+Theo Almeida</textarea>
+        <div class="ta-foot">
+          <span class="count"><b>30</b> students</span>
+          <a class="linkish" href="#">Load sample roster</a>
+        </div>
+      </div>
+
+      <div class="blk">
+        <div class="blk-h">Split</div>
+        <div class="seg">
+          <button class="on">Number of groups</button>
+          <button>Students per group</button>
+        </div>
+        <div class="size-row">
+          <div class="stepper">
+            <button class="stepbtn m" aria-label="decrease">−</button>
+            <input type="number" value="6" />
+            <button class="stepbtn p" aria-label="increase">+</button>
+          </div>
+          <div class="hint"><span>6 groups of <b>5</b></span></div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" checked />
+          <span class="track"></span>
+          <span class="lbl">Avoid repeat groupings<span class="sub">Mixes students from earlier rounds</span></span>
+        </label>
+        <button class="btn btn-go">Randomize groups</button>
+        <button class="sound">♪ Shuffle sound: Arcade</button>
+      </div>
+    </div>
+
+    <div class="userrow">
+      <div class="upic"></div>
+      <div class="uname">B. Kealer</div>
+      <button class="uout">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- ================= STAGE ================= -->
+  <main class="canvas">
+    <div class="scorebar">
+      <h2>Period 3 — Lab partners</h2>
+      <div class="readout">
+        <div class="stat"><div class="n">6</div><div class="k">Groups</div></div>
+        <div class="stat"><div class="n">30</div><div class="k">Students</div></div>
+        <div class="stat"><div class="n">5</div><div class="k">Per group</div></div>
+      </div>
+    </div>
+
+    <div class="acts">
+      <button class="act">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15"/></svg>
+        Randomize again
+      </button>
+      <button class="act">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+        Clear groups
+      </button>
+      <button class="act">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+        Print
+      </button>
+    </div>
+
+    <div class="board">
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="tip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>
+      Drag any student to move them between groups
+    </div>
+  </main>
+</div>
+
+<!-- ================= TEACHER MODAL ================= -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-h">
+      <h3>Teacher settings</h3>
+      <span class="tag">Saved ✓</span>
+      <button class="x" id="modalX" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-b">
+      <p class="d">Keep certain students apart <b>in this list</b>. These pairs will never share a group. The class never sees these rules.</p>
+      <div class="addrow">
+        <select><option>Student…</option></select>
+        <select><option>Student…</option></select>
+        <button class="btn">Add</button>
+      </div>
+      <div class="pairs">
+        <div class="pair"><span>Marcus Bell</span><span class="vs">apart from</span><span>Diego Santos</span><button class="rm" aria-label="Remove">×</button></div>
+      </div>
+
+      <div class="rule"></div>
+      <p class="sect">Shuffle phrases</p>
+      <p class="d">Lines that flash on screen while the groups shuffle. These <b>are</b> shown to the class.</p>
+      <div class="addrow">
+        <input type="text" placeholder="e.g. Consulting the chaos goblins…" />
+        <button class="btn">Add</button>
+      </div>
+      <div class="pairs">
+        <div class="pair"><span>Shaking the name jar…</span><button class="rm" aria-label="Remove">×</button></div>
+        <div class="pair"><span>Consulting the chaos goblins…</span><button class="rm" aria-label="Remove">×</button></div>
+      </div>
+
+      <div class="rule"></div>
+      <p class="sect">Shuffle sound</p>
+      <p class="d">Plays while the groups shuffle. Tap one to hear it.</p>
+      <div class="sounds">
+        <button class="snd">Off</button>
+        <button class="snd">Whoosh</button>
+        <button class="snd on">Arcade</button>
+        <button class="snd">Drumroll</button>
+        <button class="snd">Rising</button>
+        <button class="snd">Casino</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var TEAMS=[
+    {c:'#ffb020',n:['Tobias Vega','Grace Lin','Priya Desai','Sofia Ramirez','Maya Patel']},
+    {c:'#3ddc97',n:['Ethan Nguyen','Elena Novak','Ravi Sharma','Yuki Tanaka','Emma Walsh']},
+    {c:'#5db3f5',n:['Naomi Cohen','Theo Almeida','Jordan Lee','Marcus Bell','Hannah Goldberg']},
+    {c:'#ff7a6b',n:['Owen Murphy','Mason Clarke','Zara Hussain','Felix Dubois','Diego Santos']},
+    {c:'#c79bf0',n:['Jamal Carter','Avery Thompson','Caleb Foster','Amara Okafor',"Liam O'Connor"]},
+    {c:'#f5d76e',n:['Chloe Andersson','Isabella Rossi','Lucas Müller','Noah Kim','Olivia Bennett']}
+  ];
+  var h='';
+  TEAMS.forEach(function(t,i){
+    h+='<div class="team" style="--tc:'+t.c+'">'
+      +'<div class="team-h"><span class="team-n">'+(i+1)+'</span><span class="team-t">Group '+(i+1)+'</span><span class="team-c">'+t.n.length+' up</span></div>'
+      +'<ul class="roster">';
+    t.n.forEach(function(nm,j){
+      h+='<li><span class="jersey">'+((i*5)+j+1)+'</span>'+nm+'</li>';
+    });
+    h+='</ul></div>';
+  });
+  document.getElementById('grid').innerHTML=h;
+
+  var ov=document.getElementById('overlay');
+  document.getElementById('gearBtn').onclick=function(){ov.classList.add('show')};
+  document.getElementById('modalX').onclick=function(){ov.classList.remove('show')};
+  ov.onclick=function(e){if(e.target===ov)ov.classList.remove('show')};
+  document.querySelectorAll('.seg button').forEach(function(b){
+    b.onclick=function(){document.querySelectorAll('.seg button').forEach(function(x){x.classList.remove('on')});b.classList.add('on')};
+  });
+})();
+</script>
+</body>
+</html>
